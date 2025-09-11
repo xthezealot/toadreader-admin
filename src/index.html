@@ -20,6 +20,34 @@
                 background: #f8f9fa;
             }
 
+            table {
+                border-collapse: collapse;
+                border: 1px solid #ced4da;
+                border-radius: 8px;
+
+                th {
+                    background-color: #f1f3f5;
+                    text-align: left;
+                }
+
+                td, th {
+                    border-bottom: 1px solid #ced4da;
+                    padding: .5rem 1rem;
+                }
+
+                tr {
+                    transition: background-color 0.2s ease;
+
+                    &:hover {
+                        background-color: #f1f3f5;
+                    }
+
+                    &:last-child > td {
+                        border-bottom: none;
+                    }
+                }
+            }
+
 
             /* HELPERS */
 
