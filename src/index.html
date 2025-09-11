@@ -152,21 +152,39 @@
             dashboard-shell {
                 display: flex;
                 height: 100vh;
-                gap: 16px;
+                gap: 3rem;
+                padding: 2rem;
 
                 .sidebar {
-                    padding: 16px;
-                    background: #000;
+                    padding: 2rem;
+                    border-radius: 1.5rem;
+                    background: #212529;
                     color: #fff;
 
                     nav div {
                         cursor: pointer;
-                        padding: 8px 16px;
-                        border-radius: 8px;
-                        transition: background-color 0.2s ease;
+                        padding: .5rem 1rem;
+                        border-radius: .5rem;
+                        font-size: 1.2em;
+                        font-weight: 500;
+                        transition: background-color 0.2s ease, color 0.2s ease;
 
                         &:hover {
-                            background-color: #f1f3f5;
+                            background-color: #495057;
+
+                        }
+
+                        &.sign-out {
+                            color: #fa5252;
+
+                            &:hover {
+                                color: #ffc9c9;
+                                background-color: #c92a2a;
+                            }
+                        }
+
+                        &[data-indent] {
+                            padding-left: calc(attr(data-indent) * 2rem);
                         }
                     }
                 }
@@ -245,10 +263,10 @@
                         <div class="sidebar">
                             <nav>
                                 <div @click="$dispatch('load-page', 'audiobooks.html')">Audiobooks</div>
-                                <div @click="$dispatch('load-page', 'audiobook.html?id=new')">New audiobook</div>
+                                <div @click="$dispatch('load-page', 'audiobook.html?id=new')" data-indent="1">New audiobook</div>
                                 <div @click="$dispatch('load-page', 'users.html')">Users</div>
                                 <div @click="$dispatch('load-page', 'subplans.html')">Subscription plans</div>
-                                <div @click="$dispatch('load-page', 'sign-in.html')">Sign out</div>
+                                <div @click="$dispatch('load-page', 'sign-in.html')" class="sign-out">Sign out</div>
                             </nav>
                         </div>
                         <div class="content">
