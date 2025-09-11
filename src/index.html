@@ -244,11 +244,11 @@
                     this.innerHTML = `
                         <div class="sidebar">
                             <nav>
-                                <div data-to="audiobooks.html">Audiobooks</div>
-                                <div data-to="audiobook.html?id=new">New audiobook</div>
-                                <div data-to="users.html">Users</div>
-                                <div data-to="subplans.html">Subscription plans</div>
-                                <div data-signout>Sign out</div>
+                                <div @click="$dispatch('load-page', 'audiobooks.html')">Audiobooks</div>
+                                <div @click="$dispatch('load-page', 'audiobook.html?id=new')">New audiobook</div>
+                                <div @click="$dispatch('load-page', 'users.html')">Users</div>
+                                <div @click="$dispatch('load-page', 'subplans.html')">Subscription plans</div>
+                                <div @click="$dispatch('load-page', 'sign-in.html')">Sign out</div>
                             </nav>
                         </div>
                         <div class="content">
@@ -256,17 +256,6 @@
                             ${content}
                         </div>
                     `
-
-                    this.addEventListener("click", (e) => {
-                        const el = e.target.closest("[data-to], [data-signout]")
-                        if (!el) return
-                        if (el.hasAttribute("data-signout")) {
-                            localStorage.removeItem("token")
-                            this.dispatchEvent(new CustomEvent("load-page", { detail: "sign-in.html", bubbles: true }))
-                            return
-                        }
-                        this.dispatchEvent(new CustomEvent("load-page", { detail: el.getAttribute("data-to"), bubbles: true }))
-                    })
                 }
 
                 static get observedAttributes() { return ["title"] }
