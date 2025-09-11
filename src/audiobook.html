@@ -1,54 +1,54 @@
 <script>
-  const token = localStorage.getItem("token")
+    const token = localStorage.getItem("token")
 
-  Alpine.data("audiobook", () => ({
-    audiobook: {},
-    title: "",
-    author: "",
-    cover: "",
-    chapters: [],
+    Alpine.data("audiobook", () => ({
+        audiobook: {},
+        title: "",
+        author: "",
+        cover: "",
+        chapters: [],
 
-    async init() {
-      await this.loadAudiobook()
-    },
+        async init() {
+            await this.loadAudiobook()
+        },
 
-    async loadAudiobook() {
-      try {
-        const id = parseInt(localStorage.getItem("currentAudiobookId"))
+        async loadAudiobook() {
+            try {
+                const id = parseInt(localStorage.getItem("currentAudiobookId"))
 
-        const response = await fetch(`http://localhost:4567/audiobooks/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+                const response = await fetch(`http://localhost:4567/audiobooks/${id}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
 
-        if (response.ok) {
-          this.audiobook = await response.json()
-          this.title = this.audiobook.title
-          this.author = this.audiobook.author
-          this.cover = this.audiobook.cover
-          this.chapters = this.audiobook.chapters
-        } else {
-          console.error("Failed to load audiobook")
+                if (response.ok) {
+                    this.audiobook = await response.json()
+                    this.title = this.audiobook.title
+                    this.author = this.audiobook.author
+                    this.cover = this.audiobook.cover
+                    this.chapters = this.audiobook.chapters
+                } else {
+                    console.error("Failed to load audiobook")
+                }
+            } catch (error) {
+                console.error("Network error:", error)
+            }
+        },
+
+        renderChapter(chapter) {
+            if (chapter.children && chapter.children.length > 0) {
+                // section with children
+                const childrenHtml = chapter.children.map(child => this.renderChapter(child)).join("")
+                return `<li><div><div class="section-title">${chapter.title}</div><ul>${childrenHtml}</ul></div></li>`
+            } else {
+                // clickable chapter
+                const clickable = chapter.file ? "clickable" : ""
+                const playing = chapter.file === this.currentAudioFile ? "playing" : ""
+                const chapterIndex = chapter.file ? this.flatChapters.findIndex(c => c.file === chapter.file) : -1
+                const dataIndex = chapterIndex >= 0 ? `data-index="${chapterIndex}"` : ""
+                return `<li><div class="chapter-title ${clickable} ${playing}" ${dataIndex}>${chapter.title}</div></li>`
+            }
         }
-      } catch (error) {
-        console.error("Network error:", error)
-      }
-    },
-
-    renderChapter(chapter) {
-      if (chapter.children && chapter.children.length > 0) {
-        // section with children
-        const childrenHtml = chapter.children.map(child => this.renderChapter(child)).join("")
-        return `<li><div><div class="section-title">${chapter.title}</div><ul>${childrenHtml}</ul></div></li>`
-      } else {
-        // clickable chapter
-        const clickable = chapter.file ? "clickable" : ""
-        const playing = chapter.file === this.currentAudioFile ? "playing" : ""
-        const chapterIndex = chapter.file ? this.flatChapters.findIndex(c => c.file === chapter.file) : -1
-        const dataIndex = chapterIndex >= 0 ? `data-index="${chapterIndex}"` : ""
-        return `<li><div class="chapter-title ${clickable} ${playing}" ${dataIndex}>${chapter.title}</div></li>`
-      }
-    }
-  }))
+    }))
 </script>
 
 
@@ -58,26 +58,20 @@
 
 
 <div x-data="audiobook">
-  <nav>
-    <div @click="$dispatch('load-page', 'audiobooks.html')">Audiobooks</div>
-    <div @click="$dispatch('load-page', 'audiobook.html?id=new')">New audiobook</div>
-    <div @click="$dispatch('load-page', 'users.html')">Users</div>
-    <div @click="$dispatch('load-page', 'subplans.html')">Subscription plans</div>
-    <div @click="$dispatch('load-page', 'sign-in.html')">Sign out</div>
-  </nav>
+    <dashboard-shell>
+        <!-- cover -->
+        <template x-if="audiobook.cover">
+            <img id="cover" x-init="getFileUrl(audiobook.cover).then(url => $el.src = url)" />
+        </template>
 
-  <!-- cover -->
-  <template x-if="audiobook.cover">
-    <img id="cover" x-init="getFileUrl(audiobook.cover).then(url => $el.src = url)" />
-  </template>
+        <!-- title and author -->
+        <div id="title" x-text="audiobook.title"></div>
+        <div id="author" x-text="audiobook.author"></div>
 
-  <!-- title and author -->
-  <div id="title" x-text="audiobook.title"></div>
-  <div id="author" x-text="audiobook.author"></div>
-
-  <div id="chapters">
-    <h2 class="title">Chapters</h2>
-    <!-- recursive chapters list -->
-    <ul x-html="audiobook.chapters?.map(chapter => renderChapter(chapter)).join('') || ''"></ul>
-  </div>
+        <div id="chapters">
+            <h2 class="title">Chapters</h2>
+            <!-- recursive chapters list -->
+            <ul x-html="audiobook.chapters?.map(chapter => renderChapter(chapter)).join('') || ''"></ul>
+        </div>
+    </dashboard-shell>
 </div>

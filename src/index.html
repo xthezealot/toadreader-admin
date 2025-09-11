@@ -1,212 +1,243 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Toad Reader Admin</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="lib/normalize.css">
+    <head>
+        <title>Toad Reader Admin</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="lib/normalize.css">
 
 
-    <style>
-      /* GLOBAL */
+        <style>
+            /* GLOBAL */
 
-      :root {
-        --primary: #000;
-        --primary-rgb: 0, 0, 0;
-      }
+            :root {
+                --primary: #000;
+                --primary-rgb: 0, 0, 0;
+            }
 
-      body {
-        height: 100%;
-        font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-        background: #f8f9fa;
-      }
-
-
-      /* HELPERS */
-
-      .p-safe {
-        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-      }
+            body {
+                height: 100%;
+                font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+                background: #f8f9fa;
+            }
 
 
-      /* FORMS */
+            /* HELPERS */
 
-      ::placeholder {
-        color: #868e96;
-        opacity: 1;
-      }
-
-      input[type="text"],
-      input[type="search"],
-      input[type="email"],
-      input[type="number"],
-      select,
-      label:has(input[type="text"]),
-      label:has(input[type="search"]),
-      label:has(input[type="email"]),
-      label:has(input[type="number"]),
-      label:has(select),
-      button,
-      input[type="submit"] {
-        appearance: none;
-        padding: 8px;
-        border: none;
-        background: #f1f3f5;
-        color: inherit;
-        font: inherit;
-        border-radius: 8px;
-        transition: border-color 0.2s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-
-        @media (prefers-color-scheme: dark) {
-          background: #343a40;
-        }
-
-        &:focus {
-          outline: none;
-          border-color: #adb5bd;
-        }
-
-        &:disabled {
-          cursor: not-allowed;
-          opacity: 0.5;
-        }
-      }
-
-      button,
-      input[type="submit"] {
-        background: var(--primary);
-        color: white;
-        font-weight: 500;
-        cursor: pointer;
-      }
-
-      label:has(input) {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: #868e96;
-
-        input {
-          flex: 1;
-          padding: 0 !important;
-          background: transparent;
-          border-radius: 0;
-          transition: none;
-        }
-      }
-
-      label:has(select) {
-        position: relative;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-
-        select {
-          position: absolute;
-          inset: 0;
-          opacity: 0;
-          border: none;
-          background: none;
-        }
-      }
+            .p-safe {
+                padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            }
 
 
-      /* HEADER */
+            /* FORMS */
 
-      #header {
-        padding: calc(env(safe-area-inset-top) + 16px) 16px 16px;
-        border-bottom: 1px solid #f1f3f5;
-        background: #fff;
+            ::placeholder {
+                color: #868e96;
+                opacity: 1;
+            }
 
-        .actions {
-          display: flex;
-          gap: 16px;
-          align-items: center;
-          justify-content: space-between;
-          margin: 0 0 16px;
-        }
+            input[type="text"],
+            input[type="search"],
+            input[type="email"],
+            input[type="number"],
+            select,
+            label:has(input[type="text"]),
+            label:has(input[type="search"]),
+            label:has(input[type="email"]),
+            label:has(input[type="number"]),
+            label:has(select),
+            button,
+            input[type="submit"] {
+                appearance: none;
+                padding: 8px;
+                border: none;
+                background: #f1f3f5;
+                color: inherit;
+                font: inherit;
+                border-radius: 8px;
+                transition: border-color 0.2s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
 
-        h1 {
-          font-size: 1.5rem;
-          font-weight: 600;
-          line-height: 1;
-          margin: 0;
-        }
-      }
+                @media (prefers-color-scheme: dark) {
+                    background: #343a40;
+                }
 
-      .header-container {
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-      }
+                &:focus {
+                    outline: none;
+                    border-color: #adb5bd;
+                }
 
-      .header-content {
-        padding: 16px 16px calc(env(safe-area-inset-bottom) + 16px);
-        overflow-y: auto;
-        flex: 1;
-      }
+                &:disabled {
+                    cursor: not-allowed;
+                    opacity: 0.5;
+                }
+            }
+
+            button,
+            input[type="submit"] {
+                background: var(--primary);
+                color: white;
+                font-weight: 500;
+                cursor: pointer;
+            }
+
+            label:has(input) {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                color: #868e96;
+
+                input {
+                    flex: 1;
+                    padding: 0 !important;
+                    background: transparent;
+                    border-radius: 0;
+                    transition: none;
+                }
+            }
+
+            label:has(select) {
+                position: relative;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+
+                select {
+                    position: absolute;
+                    inset: 0;
+                    opacity: 0;
+                    border: none;
+                    background: none;
+                }
+            }
 
 
-      /* DARK MODE */
+            /* HEADER */
 
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --primary: #fff;
-          --primary-rgb: 255, 255, 255;
-        }
+            #header {
+                padding: calc(env(safe-area-inset-top) + 16px) 16px 16px;
+                border-bottom: 1px solid #f1f3f5;
+                background: #fff;
 
-        body {
-          color: #fff;
-          background-color: #000;
-        }
+                .actions {
+                    display: flex;
+                    gap: 16px;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin: 0 0 16px;
+                }
 
-        #header {
-          background: #212529;
-          border-color: #343a40;
-        }
+                h1 {
+                    font-size: 1.5rem;
+                    font-weight: 600;
+                    line-height: 1;
+                    margin: 0;
+                }
+            }
 
-        button,
-        input[type="submit"] {
-          color: #000;
-        }
-      }
-    </style>
+            .header-container {
+                display: flex;
+                flex-direction: column;
+                height: 100vh;
+            }
+
+            .header-content {
+                padding: 16px 16px calc(env(safe-area-inset-bottom) + 16px);
+                overflow-y: auto;
+                flex: 1;
+            }
 
 
-    <script src="lib/alpine.js" defer></script>
-    <script>
-      document.addEventListener("alpine:init", () => {
-        Alpine.data("app", () => ({
-          page: "",
+            /* DARK MODE */
 
-          init() {
-            const token = localStorage.getItem("token")
-            if (token) this.loadPage("audiobooks.html")
-            else this.loadPage("sign-in.html")
-          },
+            @media (prefers-color-scheme: dark) {
+                :root {
+                    --primary: #fff;
+                    --primary-rgb: 255, 255, 255;
+                }
 
-          async loadPage(name) {
-            const data = await (await fetch(name)).text()
-            const div = document.createElement("div")
-            div.innerHTML = data
+                body {
+                    color: #fff;
+                    background-color: #000;
+                }
 
-            div.querySelectorAll("script").forEach((script) => {
-              eval(script.textContent)
-              script.remove()
+                #header {
+                    background: #212529;
+                    border-color: #343a40;
+                }
+
+                button,
+                input[type="submit"] {
+                    color: #000;
+                }
+            }
+        </style>
+
+
+        <script src="lib/alpine.js" defer></script>
+        <script>
+            document.addEventListener("alpine:init", () => {
+                Alpine.data("app", () => ({
+                    page: "",
+
+                    init() {
+                        const token = localStorage.getItem("token")
+                        if (token) this.loadPage("audiobooks.html")
+                        else this.loadPage("sign-in.html")
+                    },
+
+                    async loadPage(name) {
+                        const data = await (await fetch(name)).text()
+                        const div = document.createElement("div")
+                        div.innerHTML = data
+
+                        div.querySelectorAll("script").forEach((script) => {
+                            eval(script.textContent)
+                            script.remove()
+                        })
+
+                        this.page = div.innerHTML
+                    },
+                }))
             })
-
-            this.page = div.innerHTML
-          },
-        }))
-      })
-    </script>
-  </head>
+        </script>
 
 
-  <body x-data="app" @load-page="loadPage($event.detail)">
-    <main x-html="page" style="display: contents"></main>
-  </body>
+        <script>
+            // Minimal dashboard shell with shared nav; dispatches load-page events
+            customElements.define("dashboard-shell", class extends HTMLElement {
+                constructor() {
+                    super()
+                    const r = this.attachShadow({ mode: "open" })
+                    r.innerHTML = `
+                        <nav>
+                            <div data-to="audiobooks.html">Audiobooks</div>
+                            <div data-to="audiobook.html?id=new">New audiobook</div>
+                            <div data-to="users.html">Users</div>
+                            <div data-to="subplans.html">Subscription plans</div>
+                            <div data-signout>Sign out</div>
+                        </nav>
+                        <slot></slot>
+                    `
+                    r.addEventListener("click", (e) => {
+                        const el = e.target.closest("[data-to],[data-signout]")
+                        if (!el) return
+                        if (el.hasAttribute("data-signout")) {
+                            localStorage.removeItem("token")
+                            this.dispatchEvent(new CustomEvent("load-page", { detail: "sign-in.html", bubbles: true, composed: true }))
+                            return
+                        }
+                        this.dispatchEvent(new CustomEvent("load-page", { detail: el.getAttribute("data-to"), bubbles: true, composed: true }))
+                    })
+                }
+            })
+        </script>
+    </head>
+
+
+    <body x-data="app" @load-page="loadPage($event.detail)">
+        <main x-html="page" style="display: contents"></main>
+    </body>
 </html>
