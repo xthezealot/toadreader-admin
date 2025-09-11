@@ -202,15 +202,20 @@
                     },
                 }))
             })
-        </script>
 
 
-        <script>
-            // Minimal dashboard shell with shared nav; dispatches load-page events
+
+            // COMPONENTS
+
+
+            // dashboard-shell - shared nav and page title
             customElements.define("dashboard-shell", class extends HTMLElement {
+                static get observedAttributes() { return ["title"]; }
+
                 constructor() {
                     super()
                     const r = this.attachShadow({ mode: "open" })
+
                     r.innerHTML = `
                         <nav>
                             <div data-to="audiobooks.html">Audiobooks</div>
@@ -219,8 +224,16 @@
                             <div data-to="subplans.html">Subscription plans</div>
                             <div data-signout>Sign out</div>
                         </nav>
-                        <slot></slot>
+                        <div>
+                            <h1></h1>
+                            <slot></slot>
+                        </div>
                     `
+
+                    // set initial title
+                    const h1 = r.querySelector("h1")
+                    if (h1) h1.textContent = this.getAttribute("title")
+
                     r.addEventListener("click", (e) => {
                         const el = e.target.closest("[data-to],[data-signout]")
                         if (!el) return
@@ -231,6 +244,15 @@
                         }
                         this.dispatchEvent(new CustomEvent("load-page", { detail: el.getAttribute("data-to"), bubbles: true, composed: true }))
                     })
+                }
+
+                attributeChangedCallback(name, oldVal, newVal) {
+                    switch (name) {
+                        case "title":
+                            const h1 = this.shadowRoot && this.shadowRoot.querySelector("h1")
+                            if (h1) h1.textContent = newVal
+                            break
+                    }
                 }
             })
         </script>

@@ -42,10 +42,7 @@
             } else {
                 // clickable chapter
                 const clickable = chapter.file ? "clickable" : ""
-                const playing = chapter.file === this.currentAudioFile ? "playing" : ""
-                const chapterIndex = chapter.file ? this.flatChapters.findIndex(c => c.file === chapter.file) : -1
-                const dataIndex = chapterIndex >= 0 ? `data-index="${chapterIndex}"` : ""
-                return `<li><div class="chapter-title ${clickable} ${playing}" ${dataIndex}>${chapter.title}</div></li>`
+                return `<li><div class="chapter-title ${clickable}">${chapter.title}</div></li>`
             }
         }
     }))
@@ -58,10 +55,10 @@
 
 
 <div x-data="audiobook">
-    <dashboard-shell>
+    <dashboard-shell :title="audiobook.title">
         <!-- cover -->
         <template x-if="audiobook.cover">
-            <img id="cover" x-init="getFileUrl(audiobook.cover).then(url => $el.src = url)" />
+            <img id="cover" :src="'http://localhost:4567/storage/' + audiobook.cover" />
         </template>
 
         <!-- title and author -->
