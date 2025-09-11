@@ -23,12 +23,47 @@
                 console.error("Network error:", error)
             }
         },
+
+        async deleteAudiobook(id) {
+            if (!confirm("Are you sure you want to delete this audiobook?")) return
+
+            try {
+                const response = await fetch(`http://localhost:4567/audiobooks/${id}`, {
+                    method: "DELETE",
+                    headers: { Authorization: `Bearer ${token}` },
+                })
+
+                if (response.ok) {
+                    this.loadAudiobooks()
+                } else {
+                    console.error("Failed to delete audiobook")
+                }
+            } catch (error) {
+                console.error("Network error:", error)
+            }
+        },
     }))
 </script>
 
 
 <style>
+    #audiobooks {
+        button {
+            cursor: pointer;
+            display: inline-flex;
 
+            &.delete {
+                transition: background-color 0.2s ease, color 0.2s ease;
+                color: #fa5252;
+                background-color: transparent;
+
+                &:hover {
+                    color: #fff;
+                    background-color: #c92a2a;
+                }
+            }
+        }
+    }
 </style>
 
 
@@ -44,7 +79,7 @@
                 </tr>
             </thead>
             <template x-for="audiobook in audiobooks" :key="audiobook.id">
-                <tr @click="localStorage.setItem('currentAudiobookId', audiobook.id); $dispatch('load-page', 'audiobook.html')">
+                <tr>
                     <td>
                         <template x-if="audiobook.cover">
                             <img :src="'http://localhost:4567/storage/' + audiobook.cover" height="64" />
@@ -56,8 +91,8 @@
                     <td x-text="audiobook.title"></td>
                     <td x-text="audiobook.author"></td>
                     <td>
-                        <span class="edit">Edit</span>
-                        <span class="delete">Delete</span>
+                        <button class="edit" @click="localStorage.setItem('currentAudiobookId', audiobook.id); $dispatch('load-page', 'audiobook.html')">Edit</button>
+                        <button class="delete" @click="deleteAudiobook(audiobook.id)">Delete</button>
                     </td>
                 </tr>
             </template>
