@@ -47,7 +47,7 @@
                 <tr @click="localStorage.setItem('currentAudiobookId', audiobook.id); $dispatch('load-page', 'audiobook.html')">
                     <td>
                         <template x-if="audiobook.cover">
-                            <img x-init="getFileUrl(audiobook.cover).then(url => $el.src = url)" />
+                            <img :src="'http://localhost:4567/storage/' + audiobook.cover" height="64" />
                         </template>
                         <template x-if="!audiobook.cover">
                             <div class="no-cover"></div>
