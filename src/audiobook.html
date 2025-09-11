@@ -8,7 +8,6 @@
     cover: "",
     chapters: [],
 
-
     async init() {
       await this.loadAudiobook()
     },
@@ -58,19 +57,27 @@
 </style>
 
 
-<div id="audiobook" x-data="audiobook">
-    <!-- cover -->
-    <template x-if="audiobook.cover">
-      <img id="cover" x-init="getFileUrl(audiobook.cover).then(url => $el.src = url)" />
-    </template>
+<div x-data="audiobook">
+  <nav>
+    <div @click="$dispatch('load-page', 'audiobooks.html')">Audiobooks</div>
+    <div @click="$dispatch('load-page', 'audiobook.html?id=new')">New audiobook</div>
+    <div @click="$dispatch('load-page', 'users.html')">Users</div>
+    <div @click="$dispatch('load-page', 'subplans.html')">Subscription plans</div>
+    <div @click="$dispatch('load-page', 'sign-in.html')">Sign out</div>
+  </nav>
 
-    <!-- title and author -->
-    <div id="title" x-text="audiobook.title"></div>
-    <div id="author" x-text="audiobook.author"></div>
+  <!-- cover -->
+  <template x-if="audiobook.cover">
+    <img id="cover" x-init="getFileUrl(audiobook.cover).then(url => $el.src = url)" />
+  </template>
 
-    <div id="chapters">
-      <h2 class="title">Chapters</h2>
-      <!-- recursive chapters list -->
-       <ul x-html="audiobook.chapters?.map(chapter => renderChapter(chapter)).join('') || ''"></ul>
+  <!-- title and author -->
+  <div id="title" x-text="audiobook.title"></div>
+  <div id="author" x-text="audiobook.author"></div>
+
+  <div id="chapters">
+    <h2 class="title">Chapters</h2>
+    <!-- recursive chapters list -->
+    <ul x-html="audiobook.chapters?.map(chapter => renderChapter(chapter)).join('') || ''"></ul>
   </div>
 </div>

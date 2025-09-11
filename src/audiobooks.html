@@ -32,7 +32,15 @@
 </style>
 
 
-<div x-data="audiobooks" class="header-container">
+<div x-data="audiobooks">
+  <nav>
+    <div @click="$dispatch('load-page', 'audiobooks.html')">Audiobooks</div>
+    <div @click="$dispatch('load-page', 'audiobook.html?id=new')">New audiobook</div>
+    <div @click="$dispatch('load-page', 'users.html')">Users</div>
+    <div @click="$dispatch('load-page', 'subplans.html')">Subscription plans</div>
+    <div @click="$dispatch('load-page', 'sign-in.html')">Sign out</div>
+  </nav>
+
   <h1>Audiobooks</h1>
 
   <table id="audiobooks" >
