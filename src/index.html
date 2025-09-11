@@ -54,6 +54,10 @@
                 padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
             }
 
+            .strong {
+                font-weight: 600;
+            }
+
 
             /* FORMS */
 
@@ -179,7 +183,7 @@
             dashboard-shell {
                 display: flex;
                 height: 100vh;
-                gap: 3rem;
+                gap: 2rem;
                 padding: 2rem;
 
                 .sidebar {
@@ -217,7 +221,15 @@
 
                 .content {
                     flex: 1;
+                    padding: 2rem;
                     overflow-y: auto;
+                    border-radius: 1.5rem;
+                    background: #fff;
+                    box-shadow: 0 0 2rem rgba(0, 0, 0, 0.1);
+                }
+
+                h1 {
+                    margin-top: 0;
                 }
             }
         </style>

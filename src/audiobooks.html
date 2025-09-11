@@ -113,7 +113,7 @@
                             <div class="no-cover"></div>
                         </template>
                     </td>
-                    <td x-text="audiobook.title"></td>
+                    <td x-text="audiobook.title" class="strong"></td>
                     <td x-text="audiobook.author"></td>
                     <td>
                         <button class="edit" @click="localStorage.setItem('currentAudiobookId', audiobook.id); $dispatch('load-page', 'audiobook.html')">

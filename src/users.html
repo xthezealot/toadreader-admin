@@ -1,0 +1,105 @@
+<script>
+    const token = localStorage.getItem("token")
+
+    Alpine.data("users", () => ({
+        users: [],
+
+        async init() {
+            await this.loadUsers()
+        },
+
+        async loadUsers() {
+            try {
+                const response = await fetch("http://localhost:4567/users", {
+                    headers: { Authorization: `Bearer ${token}` },
+                })
+
+                if (response.ok) {
+                    this.users = await response.json()
+                } else {
+                    console.error("Failed to load users")
+                }
+            } catch (error) {
+                console.error("Network error:", error)
+            }
+        },
+
+        async shopifySync(id) {
+            try {
+                const response = await fetch(`http://localhost:4567/users/${id}/sync/shopify`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                })
+
+                if (response.ok) {
+                    this.loadUsers()
+                } else {
+                    console.error("Failed to sync user with Shopify")
+                }
+            } catch (error) {
+                console.error("Network error:", error)
+            }
+        },
+    }))
+</script>
+
+
+<style>
+    #users {
+        img {
+            border-radius: .5rem;
+        }
+
+        .role {
+            background: #dbe4ff;
+            color: #364fc7;
+            font-family: ui-monospace, monospace;
+            padding: .25rem .5rem;
+            border-radius: .25rem;
+        }
+
+        button {
+            cursor: pointer;
+            display: inline-flex;
+
+            &.shopify-sync {
+                transition: background-color 0.2s ease, color 0.2s ease;
+                background-color: #51cf66;
+
+                &:hover {
+                    background-color: #37b24d;
+                }
+            }
+        }
+    }
+</style>
+
+
+<dashboard-shell title="Users">
+    <div id="users" x-data="users">
+        <table>
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <template x-for="user in users" :key="user.id">
+                <tr>
+                    <td x-text="user.email"></td>
+                    <td>
+                        <template x-if="user.role">
+                            <span x-text="user.role" class="role"></span>
+                        </template>
+                    </td>
+                    <td>
+                        <button class="shopify-sync" @click="shopifySync(user.id)">
+                            <svg width="18" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M434.67 285.59v-29.8c0-98.73-80.24-178.79-179.2-178.79a179 179 0 00-140.14 67.36m-38.53 82v29.8C76.8 355 157 435 256 435a180.45 180.45 0 00140-66.92" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M32 256l44-44 46 44M480 256l-44 44-46-44"/></svg>
+                            Shopify sync
+                        </button>
+                    </td>
+                </tr>
+            </template>
+        </table>
+    </div>
+</dashboard-shell>
