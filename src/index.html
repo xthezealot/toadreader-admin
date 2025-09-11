@@ -151,16 +151,15 @@
 
             dashboard-shell {
                 display: flex;
-                flex-direction: column;
                 height: 100vh;
+                gap: 16px;
 
-                nav {
-                    display: flex;
-                    gap: 16px;
+                .sidebar {
                     padding: 16px;
-                    border-bottom: 1px solid #f1f3f5;
+                    background: #000;
+                    color: #fff;
 
-                    div {
+                    nav div {
                         cursor: pointer;
                         padding: 8px 16px;
                         border-radius: 8px;
@@ -170,6 +169,11 @@
                             background-color: #f1f3f5;
                         }
                     }
+                }
+
+                .content {
+                    flex: 1;
+                    overflow-y: auto;
                 }
             }
 
@@ -234,14 +238,11 @@
 
             // dashboard-shell - shared nav and page title
             customElements.define("dashboard-shell", class extends HTMLElement {
-                static get observedAttributes() { return ["title"]; }
-
-                constructor() {
-                    super()
-                    const r = this.attachShadow({ mode: "open" })
-
-                    r.innerHTML = `
-                        <div id="dashboard-shell">
+                connectedCallback() {
+                    const title = this.getAttribute("title")
+                    const content = this.innerHTML
+                    this.innerHTML = `
+                        <div class="sidebar">
                             <nav>
                                 <div data-to="audiobooks.html">Audiobooks</div>
                                 <div data-to="audiobook.html?id=new">New audiobook</div>
@@ -249,33 +250,31 @@
                                 <div data-to="subplans.html">Subscription plans</div>
                                 <div data-signout>Sign out</div>
                             </nav>
-                            <div>
-                                <h1></h1>
-                                <slot></slot>
-                            </div>
+                        </div>
+                        <div class="content">
+                            <h1>${title}</h1>
+                            ${content}
                         </div>
                     `
 
-                    // set initial title
-                    const h1 = r.querySelector("h1")
-                    if (h1) h1.textContent = this.getAttribute("title")
-
-                    r.addEventListener("click", (e) => {
-                        const el = e.target.closest("[data-to],[data-signout]")
+                    this.addEventListener("click", (e) => {
+                        const el = e.target.closest("[data-to], [data-signout]")
                         if (!el) return
                         if (el.hasAttribute("data-signout")) {
                             localStorage.removeItem("token")
-                            this.dispatchEvent(new CustomEvent("load-page", { detail: "sign-in.html", bubbles: true, composed: true }))
+                            this.dispatchEvent(new CustomEvent("load-page", { detail: "sign-in.html", bubbles: true }))
                             return
                         }
-                        this.dispatchEvent(new CustomEvent("load-page", { detail: el.getAttribute("data-to"), bubbles: true, composed: true }))
+                        this.dispatchEvent(new CustomEvent("load-page", { detail: el.getAttribute("data-to"), bubbles: true }))
                     })
                 }
+
+                static get observedAttributes() { return ["title"] }
 
                 attributeChangedCallback(name, oldVal, newVal) {
                     switch (name) {
                         case "title":
-                            const h1 = this.shadowRoot && this.shadowRoot.querySelector("h1")
+                            const h1 = this.querySelector("h1")
                             if (h1) h1.textContent = newVal
                             break
                     }
