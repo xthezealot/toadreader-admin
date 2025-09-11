@@ -1,0 +1,138 @@
+<script>
+  Alpine.data("signin", () => ({
+    step: "email",
+    email: "",
+    code: "",
+
+    async submitEmail() {
+      try {
+        const formData = new FormData()
+        formData.append("email", this.email)
+
+        const response = await fetch("http://localhost:4567/auth", {
+          method: "POST",
+          body: formData
+        })
+
+        if (response.ok) {
+          this.step = "code"
+        } else {
+          alert("Invalid email")
+        }
+      } catch (error) {
+        alert("Network error. Please try again.")
+      }
+    },
+
+    async submitCode() {
+      try {
+        const formData = new FormData()
+        formData.append("email", this.email)
+        formData.append("code", this.code)
+
+        const response = await fetch("http://localhost:4567/auth/verify", {
+          method: "POST",
+          body: formData
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          localStorage.setItem("token", data.token)
+          this.$dispatch("load-page", "audiobooks.html")
+        } else {
+          alert("Invalid code")
+        }
+      } catch (error) {
+        console.error("Network error:", error)
+        alert("Network error. Please try again.")
+      }
+    }
+  }))
+</script>
+
+
+<style>
+  #content {
+    background-color: #fff;
+    padding: 16px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  h1 {
+    font-size: 2.2em;
+    font-weight: 600;
+    margin: 0 0 32px;
+  }
+
+  p {
+    margin: 0 auto 32px;
+    text-align: center;
+    max-width: 360px;
+    /* font-weight: 300; */
+    font-size: 1.1em;
+    color: #868e96;
+    line-height: 1.4;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+
+  input,
+  button {
+    padding: 12px !important;
+    width: 100%;
+  }
+
+  #change-email {
+    cursor: pointer;
+    text-align: right;
+    font-size: .9em;
+    color: #adb5bd;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    #content {
+      background-color: #000;
+    }
+  }
+</style>
+
+
+<div x-data="signin">
+  <div id="content">
+    <h1>Sign In</h1>
+
+    <div x-show="step === 'email'">
+      <p>Sign in to your account to manage your library.</p>
+      <form @submit.prevent="submitEmail">
+        <input type="email" x-model="email" placeholder="Email address" required>
+        <button type="submit">
+          <svg width="18" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M368 192H192v-80a64 64 0 11128 0 16 16 0 0032 0 96 96 0 10-192 0v80h-16a64.07 64.07 0 00-64 64v176a64.07 64.07 0 0064 64h224a64.07 64.07 0 0064-64V256a64.07 64.07 0 00-64-64z"/></svg>
+          Send code
+        </button>
+      </form>
+    </div>
+
+    <div x-show="step === 'code'">
+      <p>Enter the code sent to your email address.</p>
+      <form @submit.prevent="submitCode">
+        <div id="change-email" @click="step = 'email'">← Change email</div>
+        <input type="number" x-model="code" placeholder="Code">
+        <button type="submit">
+          <svg width="18" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M392 80H232a56.06 56.06 0 00-56 56v104h153.37l-52.68-52.69a16 16 0 0122.62-22.62l80 80a16 16 0 010 22.62l-80 80a16 16 0 01-22.62-22.62L329.37 272H176v104c0 32.05 33.79 56 64 56h152a56.06 56.06 0 0056-56V136a56.06 56.06 0 00-56-56zM80 240a16 16 0 000 32h96v-32z"/></svg>
+          Sign in
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

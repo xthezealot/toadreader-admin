@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Toad Reader Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="lib/normalize.css">
+
+
+    <style>
+      /* GLOBAL */
+
+      :root {
+        --primary: #000;
+        --primary-rgb: 0, 0, 0;
+      }
+
+      body {
+        height: 100%;
+        font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+        background: #f8f9fa;
+      }
+
+
+      /* HELPERS */
+
+      .p-safe {
+        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      }
+
+
+      /* FORMS */
+
+      ::placeholder {
+        color: #868e96;
+        opacity: 1;
+      }
+
+      input[type="text"],
+      input[type="search"],
+      input[type="email"],
+      input[type="number"],
+      select,
+      label:has(input[type="text"]),
+      label:has(input[type="search"]),
+      label:has(input[type="email"]),
+      label:has(input[type="number"]),
+      label:has(select),
+      button,
+      input[type="submit"] {
+        appearance: none;
+        padding: 8px;
+        border: none;
+        background: #f1f3f5;
+        color: inherit;
+        font: inherit;
+        border-radius: 8px;
+        transition: border-color 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+
+        @media (prefers-color-scheme: dark) {
+          background: #343a40;
+        }
+
+        &:focus {
+          outline: none;
+          border-color: #adb5bd;
+        }
+
+        &:disabled {
+          cursor: not-allowed;
+          opacity: 0.5;
+        }
+      }
+
+      button,
+      input[type="submit"] {
+        background: var(--primary);
+        color: white;
+        font-weight: 500;
+        cursor: pointer;
+      }
+
+      label:has(input) {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #868e96;
+
+        input {
+          flex: 1;
+          padding: 0 !important;
+          background: transparent;
+          border-radius: 0;
+          transition: none;
+        }
+      }
+
+      label:has(select) {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        select {
+          position: absolute;
+          inset: 0;
+          opacity: 0;
+          border: none;
+          background: none;
+        }
+      }
+
+
+      /* HEADER */
+
+      #header {
+        padding: calc(env(safe-area-inset-top) + 16px) 16px 16px;
+        border-bottom: 1px solid #f1f3f5;
+        background: #fff;
+
+        .actions {
+          display: flex;
+          gap: 16px;
+          align-items: center;
+          justify-content: space-between;
+          margin: 0 0 16px;
+        }
+
+        h1 {
+          font-size: 1.5rem;
+          font-weight: 600;
+          line-height: 1;
+          margin: 0;
+        }
+      }
+
+      .header-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+
+      .header-content {
+        padding: 16px 16px calc(env(safe-area-inset-bottom) + 16px);
+        overflow-y: auto;
+        flex: 1;
+      }
+
+
+      /* DARK MODE */
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --primary: #fff;
+          --primary-rgb: 255, 255, 255;
+        }
+
+        body {
+          color: #fff;
+          background-color: #000;
+        }
+
+        #header {
+          background: #212529;
+          border-color: #343a40;
+        }
+
+        button,
+        input[type="submit"] {
+          color: #000;
+        }
+      }
+    </style>
+
+
+    <script src="lib/alpine.js" defer></script>
+    <script>
+      document.addEventListener("alpine:init", () => {
+        Alpine.data("app", () => ({
+          page: "",
+
+          init() {
+            const token = localStorage.getItem("token")
+            if (token) this.loadPage("audiobooks.html")
+            else this.loadPage("sign-in.html")
+          },
+
+          async loadPage(name) {
+            const data = await (await fetch(name)).text()
+            const div = document.createElement("div")
+            div.innerHTML = data
+
+            div.querySelectorAll("script").forEach((script) => {
+              eval(script.textContent)
+              script.remove()
+            })
+
+            this.page = div.innerHTML
+          },
+        }))
+      })
+    </script>
+  </head>
+
+
+  <body x-data="app" @load-page="loadPage($event.detail)">
+    <main x-html="page" style="display: contents"></main>
+  </body>
+</html>
