@@ -6,6 +6,7 @@
         title: "",
         author: null,
         cover: null,
+        coverFile: null,
         chapters: [],
 
         async init() {
@@ -91,7 +92,7 @@
                 <img :src="'http://localhost:4567/storage/' + cover" />
             </template>
 
-            <input type="file" name="cover" x-model="cover" accept="image/*">
+            <input type="file" name="cover-file" x-model="coverFile" accept="image/*">
 
             <!-- title and author -->
             <p>
