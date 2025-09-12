@@ -4,8 +4,8 @@
     Alpine.data("audiobook", () => ({
         id: null,
         title: "",
-        author: "",
-        cover: "",
+        author: null,
+        cover: null,
         chapters: [],
 
         async init() {
@@ -53,12 +53,9 @@
             }
         },
 
-        async saveAudiobook() {
+        async saveAudiobook(event) {
             try {
-                const formData = new FormData()
-                formData.append("title", this.title)
-                formData.append("author", this.author)
-                formData.append("cover", this.cover)
+                const formData = new FormData(event.target)
                 formData.append("chapters", JSON.stringify(this.chapters))
 
                 const response = await fetch(`http://localhost:4567/audiobooks${this.id ? `/${this.id}` : ""}`, {
@@ -69,8 +66,9 @@
 
                 if (response.ok) {
                     console.log("Audiobook saved successfully")
+                    location.hash = "audiobooks.html"
                 } else {
-                    console.error("Failed to save audiobook")
+                    console.error("Failed to save audiobook", response)
                 }
             } catch (error) {
                 console.error("Network error:", error)
@@ -87,25 +85,29 @@
 
 <div x-data="audiobook">
     <dashboard-shell :title="title">
-        <!-- cover -->
-        <template x-if="cover">
-            <img id="cover" :src="'http://localhost:4567/storage/' + cover" />
-        </template>
+        <form @submit.prevent="saveAudiobook">
+            <!-- cover -->
+            <template x-if="cover">
+                <img :src="'http://localhost:4567/storage/' + cover" />
+            </template>
 
-        <!-- title and author -->
-        <p>
-            <input type="text" id="title" x-model="title" placeholder="Title"></input>
-        </p>
-        <p>
-            <input type="text" id="author" x-model="author" placeholder="Author"></input>
-        </p>
+            <input type="file" name="cover" x-model="cover" accept="image/*">
 
-        <div id="chapters">
-            <h2 class="title">Chapters</h2>
-            <!-- recursive chapters list -->
-            <ul x-html="chapters?.map(chapter => renderChapter(chapter)).join('') || ''"></ul>
-        </div>
+            <!-- title and author -->
+            <p>
+                <input type="text" name="title" x-model="title" placeholder="Title" required></input>
+            </p>
+            <p>
+                <input type="text" name="author" x-model="author" placeholder="Author"></input>
+            </p>
 
-        <button @click="saveAudiobook">Save</button>
+            <div id="chapters">
+                <h2 class="title">Chapters</h2>
+                <!-- recursive chapters list -->
+                <ul x-html="chapters?.map(chapter => renderChapter(chapter)).join('') || ''"></ul>
+            </div>
+
+            <button type="submit">Save</button>
+        </form>
     </dashboard-shell>
 </div>
