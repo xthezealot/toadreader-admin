@@ -51,6 +51,30 @@
                 const clickable = chapter.file ? "clickable" : ""
                 return `<li><div class="chapter-title ${clickable}">${chapter.title}</div></li>`
             }
+        },
+
+        async saveAudiobook() {
+            try {
+                const formData = new FormData()
+                formData.append("title", this.title)
+                formData.append("author", this.author)
+                formData.append("cover", this.cover)
+                formData.append("chapters", JSON.stringify(this.chapters))
+
+                const response = await fetch(`http://localhost:4567/audiobooks${this.id ? `/${this.id}` : ""}`, {
+                    method: this.id ? "PUT" : "POST",
+                    headers: { Authorization: `Bearer ${token}` },
+                    body: formData,
+                })
+
+                if (response.ok) {
+                    console.log("Audiobook saved successfully")
+                } else {
+                    console.error("Failed to save audiobook")
+                }
+            } catch (error) {
+                console.error("Network error:", error)
+            }
         }
     }))
 </script>
@@ -69,13 +93,19 @@
         </template>
 
         <!-- title and author -->
-        <div id="title" x-text="title"></div>
-        <div id="author" x-text="author"></div>
+        <p>
+            <input type="text" id="title" x-model="title" placeholder="Title"></input>
+        </p>
+        <p>
+            <input type="text" id="author" x-model="author" placeholder="Author"></input>
+        </p>
 
         <div id="chapters">
             <h2 class="title">Chapters</h2>
             <!-- recursive chapters list -->
             <ul x-html="chapters?.map(chapter => renderChapter(chapter)).join('') || ''"></ul>
         </div>
+
+        <button @click="saveAudiobook">Save</button>
     </dashboard-shell>
 </div>
