@@ -6,7 +6,7 @@ This document defines how AI coding agents should operate in this repository. Ke
 
 - Stack: Static HTML + CSS + Alpine.js in `src/` (no build step).
 - Shell: Lightweight dev server with live‑reload in `devserver.py` serving `src/`.
-- App model: `src/index.html` loads sub‑pages (`*.html`) dynamically and evals their `<script>` blocks. Navigation uses Alpine custom events.
+- App model: `src/index.html` loads sub‑pages (`*.html`) dynamically and evals their `<script>` blocks. Navigation uses URL hash routing (updates to `location.href` / `location.hash`).
 
 ## Run Locally
 
@@ -15,18 +15,18 @@ This document defines how AI coding agents should operate in this repository. Ke
 
 ## Page Architecture
 
-- Entry: `src/index.html` owns layout and page loading via `loadPage(name)` and `$dispatch('load-page', 'file.html')`.
+- Entry: `src/index.html` owns layout and page loading via `loadPage(name)`. It listens to `hashchange` and loads the page from `location.hash`.
 - Sub‑pages: Each page in `src/` is a self‑contained HTML fragment plus:
   - A `<script>` block that registers an `Alpine.data('name', ...)` component and any page logic.
   - An optional `<style>` block (CSS nesting is used—keep it consistent, do not add a build step).
   - Markup that will be injected into `<dashboard-shell>`.
-- Navigation: Use `$dispatch('load-page', 'some-page.html')`. Avoid hard `<a href>` navigation that leaves the shell.
+- Navigation: Set `location.href = '#some-page.html?param=value'` (or `location.hash = 'some-page.html?param=value'`). Avoid full page navigations that leave the shell.
 
 ## Data/API Conventions
 
 - Base URL: `http://localhost:4567/` (dev). Include `Authorization: Bearer ${token}` where `token = localStorage.getItem('token')`.
 - Fetching: Use `fetch(url, { headers: { Authorization: ... } })`; check `response.ok`; log concise errors.
-- State: Keep page state inside its Alpine component. Avoid global variables beyond reading the token and simple `localStorage` keys (e.g., `currentAudiobookId`).
+- State: Keep page state inside its Alpine component. Avoid global variables beyond reading the token and fixed preferences. Pass per‑navigation data via query params in the hash (e.g., `#audiobook.html?id=123`).
 
 ## Code Conventions
 
@@ -36,7 +36,7 @@ This document defines how AI coding agents should operate in this repository. Ke
   - CSS: Use the same nested style syntax already present in `src/*.html`.
   - Minimal inline comments; prefer clear, short code.
 - Components: Prefer small Alpine components per page (`Alpine.data('name', () => ({ ... }))`).
-- Events: Communicate across pages using `$dispatch('load-page', ...)` only.
+- Events: Do not use `$dispatch('load-page', ...)` for navigation. Use hash routing by setting `location.href`/`location.hash`.
 
 ## Agent Operating Rules
 
@@ -51,10 +51,10 @@ This document defines how AI coding agents should operate in this repository. Ke
 
 - Add a new page:
   1) Create `src/new-page.html` with `<script>`, `<style>`, and markup following existing pages.
-  2) Trigger navigation using `$dispatch('load-page', 'new-page.html')` from buttons/links.
+  2) Trigger navigation by setting `location.href = '#new-page.html'` (add query params as needed, e.g., `#new-page.html?foo=bar`).
 
 - Edit an audiobook from the list:
-  - Set `localStorage.setItem('currentAudiobookId', audiobook.id)` then `$dispatch('load-page', 'audiobook.html')` (pattern already used in `src/audiobooks.html`).
+  - Navigate with `location.href = '#audiobook.html?id=' + audiobook.id` (the page reads `id` from `location.hash`).
 
 - API calls with auth:
   ```js
@@ -77,4 +77,3 @@ This document defines how AI coding agents should operate in this repository. Ke
 - Keep related changes grouped; avoid drive‑by refactors outside the task scope.
 
 That’s it—follow the existing patterns and keep edits tight.
-
