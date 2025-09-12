@@ -2,7 +2,7 @@
     const token = localStorage.getItem("token")
 
     Alpine.data("audiobook", () => ({
-        audiobook: {},
+        id: null,
         title: "",
         author: "",
         cover: "",
@@ -14,18 +14,25 @@
 
         async loadAudiobook() {
             try {
-                const id = parseInt(localStorage.getItem("currentAudiobookId"))
+                const paramsStr = location.hash.includes("?") ? location.hash.split("?")[1] : ""
+                const params = new URLSearchParams(paramsStr)
+                const idStr = params.get("id")
 
-                const response = await fetch(`http://localhost:4567/audiobooks/${id}`, {
+                // no id provided: treat as new audiobook (skip fetch)
+                if (!idStr) return
+
+                // fetch audiobook
+                const response = await fetch(`http://localhost:4567/audiobooks/${idStr}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 })
 
                 if (response.ok) {
-                    this.audiobook = await response.json()
-                    this.title = this.audiobook.title
-                    this.author = this.audiobook.author
-                    this.cover = this.audiobook.cover
-                    this.chapters = this.audiobook.chapters
+                    const audiobook = await response.json()
+                    this.id = audiobook.id
+                    this.title = audiobook.title
+                    this.author = audiobook.author
+                    this.cover = audiobook.cover
+                    this.chapters = audiobook.chapters
                 } else {
                     console.error("Failed to load audiobook")
                 }

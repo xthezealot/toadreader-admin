@@ -224,16 +224,32 @@
                     page: "",
 
                     init() {
-                        const token = localStorage.getItem("token")
-                        if (token) this.loadPage("audiobooks.html")
-                        else this.loadPage("sign-in.html")
+                        // handle back/forward via hash changes
+                        window.addEventListener("hashchange", () => {
+                            const route = location.hash.slice(1)
+                            if (route) this.loadPage(route)
+                        })
+
+                        // redirect to sign-in if no token
+                        if (!localStorage.getItem("token")) {
+                            this.loadPage("sign-in.html")
+                            return
+                        }
+
+                        this.loadPage(location.hash ? location.hash.slice(1) : "audiobooks.html")
                     },
 
                     async loadPage(name) {
-                        const data = await (await fetch(name)).text()
+                        // keep url hash in sync for navigation/back-forward
+                        if (location.hash.slice(1) !== name) location.hash = name
+
+                        // fetch only the file path; ignore query for file lookup
+                        const file = name.split("?")[0]
+                        const data = await (await fetch(file)).text()
                         const div = document.createElement("div")
                         div.innerHTML = data
 
+                        // execute inline scripts in the loaded fragment
                         div.querySelectorAll("script").forEach((script) => {
                             eval(script.textContent)
                             script.remove()
