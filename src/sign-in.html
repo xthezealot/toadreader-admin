@@ -38,7 +38,7 @@
                 if (response.ok) {
                     const data = await response.json()
                     localStorage.setItem("token", data.token)
-                    this.$dispatch("load-page", "audiobooks.html")
+                    location.hash = "audiobooks.html"
                 } else {
                     alert("Invalid code")
                 }
