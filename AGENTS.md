@@ -32,7 +32,7 @@ This document defines how AI coding agents should operate in this repository. Ke
 
 - Language: Vanilla JS and Alpine.js only. Do not add packages or bundlers.
 - Style: Follow existing patterns:
-  - 2‑space indentation, semicolonless JS, single quotes in JS strings unless template literals are needed.
+  - 4‑space indentation, no semicolons, double quotes in JS strings unless template literals are needed.
   - CSS: Use the same nested style syntax already present in `src/*.html`.
   - Minimal inline comments; prefer clear, short code.
 - Components: Prefer small Alpine components per page (`Alpine.data('name', () => ({ ... }))`).
@@ -58,11 +58,11 @@ This document defines how AI coding agents should operate in this repository. Ke
 
 - API calls with auth:
   ```js
-  const token = localStorage.getItem('token')
-  const r = await fetch('http://localhost:4567/resource', {
+  const token = localStorage.getItem("token")
+  const r = await fetch("http://localhost:4567/resource", {
     headers: { Authorization: `Bearer ${token}` },
   })
-  if (r.ok) { /* handle */ } else { console.error('Request failed') }
+  if (r.ok) { /* handle */ } else { console.error("Request failed") }
   ```
 
 ## Safety and Privacy
