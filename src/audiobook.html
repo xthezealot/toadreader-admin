@@ -62,20 +62,20 @@
 
 
 <div x-data="audiobook">
-    <dashboard-shell :title="audiobook.title">
+    <dashboard-shell :title="title">
         <!-- cover -->
-        <template x-if="audiobook.cover">
-            <img id="cover" :src="'http://localhost:4567/storage/' + audiobook.cover" />
+        <template x-if="cover">
+            <img id="cover" :src="'http://localhost:4567/storage/' + cover" />
         </template>
 
         <!-- title and author -->
-        <div id="title" x-text="audiobook.title"></div>
-        <div id="author" x-text="audiobook.author"></div>
+        <div id="title" x-text="title"></div>
+        <div id="author" x-text="author"></div>
 
         <div id="chapters">
             <h2 class="title">Chapters</h2>
             <!-- recursive chapters list -->
-            <ul x-html="audiobook.chapters?.map(chapter => renderChapter(chapter)).join('') || ''"></ul>
+            <ul x-html="chapters?.map(chapter => renderChapter(chapter)).join('') || ''"></ul>
         </div>
     </dashboard-shell>
 </div>
