@@ -304,7 +304,8 @@
                 attributeChangedCallback(name, oldVal, newVal) {
                     switch (name) {
                         case "title":
-                            const h1 = this.querySelector("h1")
+                            console.log("title changed to", newVal)
+                            const h1 = this.querySelector(".content h1")
                             if (h1) h1.textContent = newVal
                             break
                     }
