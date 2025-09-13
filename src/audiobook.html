@@ -153,6 +153,9 @@
 
             <div id="chapters">
                 <h2 class="title">Chapters</h2>
+                <div style="margin: .5rem 0">
+                    <button type="button" @click="chapters.push({ id: Date.now(), title: 'New chapter', children: [] })">Add chapter</button>
+                </div>
                 <ul x-sort="chapters" group="chapters" x-sort:group="{ name: 'chapters', pull: true, put: true }">
                     <template x-for="chapter in chapters" :key="chapter.id || chapter.title">
                         <li x-sort:item="chapter">
