@@ -90,7 +90,12 @@
 
 
 <style>
-
+    .cover-preview {
+        max-width: 300px;
+        max-height: 300px;
+        box-shadow: 0 0 1em rgba(0, 0, 0, 0.1);
+        border-radius: 1rem;
+    }
 </style>
 
 
@@ -99,18 +104,20 @@
         <form @submit.prevent="saveAudiobook">
             <!-- cover -->
             <template x-if="coverUrl">
-                <img :src="coverUrl" />
+                <img class="cover-preview" :src="coverUrl" />
             </template>
 
-            <input type="file" name="cover" @change="coverFile = $event.target.files[0]" accept="image/*">
+            <div>
+                <input type="file" name="cover" @change="coverFile = $event.target.files[0]" accept="image/*">
+            </div>
 
             <!-- title and author -->
-            <p>
+            <div>
                 <input type="text" name="title" x-model="title" placeholder="Title" required></input>
-            </p>
-            <p>
+            </div>
+            <div>
                 <input type="text" name="author" x-model="author" placeholder="Author"></input>
-            </p>
+            </div>
 
             <div id="chapters">
                 <h2 class="title">Chapters</h2>
