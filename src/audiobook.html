@@ -102,24 +102,30 @@
     }
 
     /* Chapter lists styling */
-    #chapters ul {
-        list-style: none;
-        min-height: .5rem;
-        padding-left: 1rem;
+    #chapters {
+        ul {
+            list-style: none;
+            min-height: 1rem;
+            padding-left: 1rem;
 
-        li {
-            cursor: move;
-            background: rgba(52, 58, 64, .05);
-            border-radius: .5rem;
-            padding: .5rem 1rem;
+            li {
+                cursor: move;
+                background: rgba(52, 58, 64, .05);
+                border-radius: .5rem;
+                padding: .5rem 1rem;
 
-            & + li {
-                margin-top: .5rem;
+                & + li {
+                    margin-top: .5rem;
+                }
+
+                & > div {
+                    margin-bottom: .5rem;
+                }
             }
+        }
 
-            & > div {
-                margin-bottom: .5rem;
-            }
+        & > ul {
+            padding-left: 0;
         }
     }
 </style>
