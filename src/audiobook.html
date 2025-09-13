@@ -5,7 +5,7 @@
         id: null,
         title: "",
         author: null,
-        cover: null,
+        existentCover: null,
         coverFile: null,
         chapters: [],
 
@@ -32,7 +32,7 @@
                     this.id = audiobook.id
                     this.title = audiobook.title
                     this.author = audiobook.author
-                    this.cover = audiobook.cover
+                    this.existentCover = audiobook.cover
                     this.chapters = audiobook.chapters
                 } else {
                     console.error("Failed to load audiobook")
@@ -43,10 +43,8 @@
         },
 
         get coverUrl() {
-            if (this.coverFile) {
-                return URL.createObjectURL(this.coverFile)
-            }
-            return this.cover ? `http://localhost:4567/storage/${this.cover}` : null
+            if (this.coverFile) return URL.createObjectURL(this.coverFile)
+            return this.existentCover ? `http://localhost:4567/storage/${this.existentCover}` : null
         },
 
         renderChapter(chapter) {
@@ -64,6 +62,11 @@
         async saveAudiobook(event) {
             try {
                 const formData = new FormData(event.target)
+                // cover
+                if (this.coverFile) formData.set("cover", this.coverFile)
+                else if (this.existentCover) formData.set("cover", this.existentCover)
+                else formData.set("cover", null)
+                // chapters
                 formData.append("chapters", JSON.stringify(this.chapters))
 
                 const response = await fetch(`http://localhost:4567/audiobooks${this.id ? `/${this.id}` : ""}`, {
@@ -95,11 +98,11 @@
     <dashboard-shell :title="title">
         <form @submit.prevent="saveAudiobook">
             <!-- cover -->
-            <template x-if="cover">
+            <template x-if="coverUrl">
                 <img :src="coverUrl" />
             </template>
 
-            <input type="file" x-model="coverFile" accept="image/*">
+            <input type="file" name="cover" @change="coverFile = $event.target.files[0]" accept="image/*">
 
             <!-- title and author -->
             <p>
