@@ -105,7 +105,7 @@
     #chapters {
         ul {
             list-style: none;
-            min-height: 1rem;
+            padding-bottom: 1rem;
             padding-left: 1rem;
 
             li {
@@ -156,15 +156,15 @@
                 <ul x-sort="chapters" group="chapters" x-sort:group="{ name: 'chapters', pull: true, put: true }">
                     <template x-for="chapter in chapters" :key="chapter.id || chapter.title">
                         <li x-sort:item="chapter">
-                            <div :class="(chapter.children && chapter.children.length) ? 'section-title' : (chapter.file ? 'chapter-title clickable' : 'chapter-title')" x-text="chapter.title"></div>
+                            <div x-text="chapter.title"></div>
                             <ul x-sort="chapter.children" group="chapters" x-sort:group="{ name: 'chapters', pull: true, put: true }">
                                 <template x-for="child in chapter.children" :key="child.id || child.title">
                                     <li x-sort:item="child">
-                                        <div :class="(child.children && child.children.length) ? 'section-title' : (child.file ? 'chapter-title clickable' : 'chapter-title')" x-text="child.title"></div>
+                                        <div x-text="child.title"></div>
                                         <ul x-sort="child.children" group="chapters" x-sort:group="{ name: 'chapters', pull: true, put: true }">
                                             <template x-for="g in child.children" :key="g.id || g.title">
                                                 <li x-sort:item="g">
-                                                    <div :class="(g.children && g.children.length) ? 'section-title' : (g.file ? 'chapter-title clickable' : 'chapter-title')" x-text="g.title"></div>
+                                                    <div x-text="g.title"></div>
                                                 </li>
                                             </template>
                                         </ul>
