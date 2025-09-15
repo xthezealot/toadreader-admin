@@ -120,6 +120,12 @@
         },
 
 
+        addChapter() {
+            this.chapters.push({ title: "New chapter", children: [] })
+            this.$nextTick(() => this.makeChaptersSortable())
+        },
+
+
         async saveAudiobook(event) {
             try {
                 const formData = new FormData(event.target)
@@ -211,7 +217,7 @@
             <div id="chapters">
                 <h2 class="title">Chapters</h2>
                 <div style="margin: .5rem 0">
-                    <button type="button" @click="chapters.push({ title: 'New chapter', children: [] })">Add chapter</button>
+                    <button type="button" @click="addChapter">Add chapter</button>
                 </div>
                 <div x-html="renderChapters(chapters)"></div>
             </div>
