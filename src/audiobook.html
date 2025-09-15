@@ -131,7 +131,7 @@
                 return {
                     _cid: cid,
                     title: li.querySelector("input[name='title']").value.trim(),
-                    file: newFile ?? (prev ? prev.file : (li.querySelector("input[name='oldFile']").value || undefined)),
+                    file: newFile || prev?.file || li.querySelector("input[name='oldFile']").value || undefined,
                     children: li.children[1] ? parse(li.children[1]) : []
                 }
             })
