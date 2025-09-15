@@ -110,13 +110,13 @@
                     animation: 150,
                     fallbackOnBody: true,
                     swapThreshold: 0.65,
-                    onEnd: () => this.afterSort()
+                    onEnd: () => this.setChaptersFromDom()
                 })
             })
         },
 
 
-        afterSort() {
+        setChaptersFromDom() {
             // update chapters order in this.chapters based on the dom
             const parse = ul => [...ul.children].map(li => ({
                 title: li.querySelector("input[name='title']").value.trim(),
@@ -206,7 +206,7 @@
 </style>
 
 
-<div x-data="audiobook">
+<div x-data="audiobook" @setChaptersFromDom.window="setChaptersFromDom">
     <dashboard-shell :title="title">
         <form @submit.prevent="saveAudiobook">
             <!-- cover -->
@@ -231,7 +231,7 @@
                 <div style="margin: .5rem 0">
                     <button type="button" @click="addChapter">Add chapter</button>
                 </div>
-                <div x-html="renderChapters(chapters)"></div>
+                <div x-html="renderChapters(chapters)" @change="setChaptersFromDom"></div>
             </div>
 
             <pre x-text="JSON.stringify(chapters, null, 2)"></pre>
