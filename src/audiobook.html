@@ -16,6 +16,7 @@
                         children: [
                             {
                                 title: "Three",
+                                file: "hello.weba"
                             }
                         ]
                     }
@@ -86,7 +87,15 @@
             let html = "<ul>"
             chapters?.map(chapter => {
                 const childrenHtml = this.renderChapters(chapter.children)
-                html += `<li><div class="title">${chapter.title}</div>${childrenHtml}</li>`
+                // file: string | File
+                html += `<li>
+                    <div class="chapter">
+                        <p>Title: <input type="text" name="title" value="${chapter.title}" required></p>
+                        <p>Current file: <input name="oldFile" type="text" value="${typeof chapter.file === "string" ? chapter.file : ""}" readonly></p>
+                        <p>New file: <input name="newFile" type="file"></p>
+                    </div>
+                    ${childrenHtml}
+                </li>`
             })
             html += "</ul>"
             return html
@@ -110,7 +119,10 @@
         afterSort() {
             // update chapters order in this.chapters based on the dom
             const parse = ul => [...ul.children].map(li => ({
-                title: li.firstElementChild.textContent.trim(),
+                title: li.querySelector("input[name='title']").value.trim(),
+                file: li.querySelector("input[name='newFile']").files[0] ||
+                      li.querySelector("input[name='oldFile']").value ||
+                      undefined,
                 children: li.children[1] ? parse(li.children[1]) : []
             }))
             this.chapters = parse(document.querySelector("#chapters ul"))
@@ -121,7 +133,7 @@
 
 
         addChapter() {
-            this.chapters.push({ title: "New chapter", children: [] })
+            this.chapters.push({ title: "New chapter", file: null, children: [] })
             this.$nextTick(() => this.makeChaptersSortable())
         },
 
