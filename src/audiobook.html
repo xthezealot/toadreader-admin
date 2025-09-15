@@ -43,6 +43,7 @@
 
         async init() {
             await this.loadAudiobook()
+            this.ensureChapterCids(this.chapters)
             this.makeChaptersSortable()
         },
 
@@ -88,7 +89,7 @@
             chapters?.map(chapter => {
                 const childrenHtml = this.renderChapters(chapter.children)
                 // file: string | File
-                html += `<li>
+                html += `<li data-cid="${chapter._cid}">
                     <div class="chapter">
                         <p>Title: <input type="text" name="title" value="${chapter.title}" required></p>
                         <p>Current file: <input name="oldFile" type="text" value="${typeof chapter.file === "string" ? chapter.file : ""}" readonly></p>
@@ -117,14 +118,23 @@
 
 
         setChaptersFromDom() {
+            // preserve previous chapter state (including File objects) by mapping by client id
+            const prevByCid = new Map()
+            const collect = arr => arr?.forEach(ch => { prevByCid.set(ch._cid, ch); collect(ch.children || []) })
+            collect(this.chapters || [])
+
             // update chapters order in this.chapters based on the dom
-            const parse = ul => [...ul.children].map(li => ({
-                title: li.querySelector("input[name='title']").value.trim(),
-                file: li.querySelector("input[name='newFile']").files[0] ||
-                      li.querySelector("input[name='oldFile']").value ||
-                      undefined,
-                children: li.children[1] ? parse(li.children[1]) : []
-            }))
+            const parse = ul => [...ul.children].map(li => {
+                const cid = li.dataset.cid
+                const prev = prevByCid.get(cid)
+                const newFile = li.querySelector("input[name='newFile']").files[0]
+                return {
+                    _cid: cid,
+                    title: li.querySelector("input[name='title']").value.trim(),
+                    file: newFile ?? (prev ? prev.file : (li.querySelector("input[name='oldFile']").value || undefined)),
+                    children: li.children[1] ? parse(li.children[1]) : []
+                }
+            })
             this.chapters = parse(document.querySelector("#chapters ul"))
 
             // reinitialize sortability after alpine re-renders chapters
@@ -132,8 +142,19 @@
         },
 
 
+        // ensure stable client ids so we can preserve state across re-renders
+        ensureChapterCids(chapters) {
+            const walk = arr => arr?.forEach(ch => {
+                if (!ch._cid) ch._cid = crypto.randomUUID()
+                if (!Array.isArray(ch.children)) ch.children = []
+                walk(ch.children)
+            })
+            walk(chapters)
+        },
+
+
         addChapter() {
-            this.chapters.push({ title: "New chapter", file: null, children: [] })
+            this.chapters.push({ _cid: crypto.randomUUID(), title: "New chapter", file: null, children: [] })
             this.$nextTick(() => this.makeChaptersSortable())
         },
 
