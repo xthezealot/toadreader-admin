@@ -7,11 +7,44 @@
         author: null,
         existentCover: null,
         coverFile: null,
-        chapters: [],
+        chapters: [
+            {
+                title: "One",
+                children: [
+                    {
+                        title: "Two",
+                        children: [
+                            {
+                                title: "Three",
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                title: "Four",
+                children: [
+                    {
+                        title: "Five",
+                        children: [
+                            {
+                                title: "Six",
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                title: "Seven",
+            }
+        ],
+
 
         async init() {
             await this.loadAudiobook()
+            this.makeChaptersSortable()
         },
+
 
         async loadAudiobook() {
             try {
@@ -33,8 +66,7 @@
                     this.title = audiobook.title
                     this.author = audiobook.author
                     this.existentCover = audiobook.cover
-                    this.chapters = audiobook.chapters || []
-                    this.ensureChildren(this.chapters)
+                    this.chapters = audiobook.chapters
                 } else {
                     console.error("Failed to load audiobook")
                 }
@@ -43,20 +75,42 @@
             }
         },
 
-        ensureChildren(list) {
-            if (!Array.isArray(list)) return
-            for (const ch of list) {
-                if (!Array.isArray(ch.children)) ch.children = []
-                if (ch.children.length) this.ensureChildren(ch.children)
-            }
-        },
 
         get coverUrl() {
             if (this.coverFile) return URL.createObjectURL(this.coverFile)
             return this.existentCover ? `http://localhost:4567/storage/${this.existentCover}` : null
         },
 
-        // rendering handled by x-for + x-sort
+
+        renderChapters(chapters) {
+            let html = "<ul>"
+            chapters?.map(chapter => {
+                const childrenHtml = this.renderChapters(chapter.children)
+                html += `<li><div>${chapter.title}</div>${childrenHtml}</li>`
+            })
+            html += "</ul>"
+            return html
+        },
+
+
+        makeChaptersSortable() {
+            const ul = document.querySelector("#chapters ul")
+            console.log(ul)
+            Sortable.create(ul, {
+                group: "chapters",
+                handle: "div",
+                animation: 150,
+                fallbackOnBody: true,
+                swapThreshold: 0.65,
+                onEnd: () => this.afterSort()
+            })
+        },
+
+
+        async afterSort() {
+            console.log("sorted")
+        },
+
 
         async saveAudiobook(event) {
             try {
@@ -83,7 +137,7 @@
             } catch (error) {
                 console.error("Network error:", error)
             }
-        }
+        },
     }))
 </script>
 
@@ -94,11 +148,6 @@
         max-height: 300px;
         box-shadow: 0 0 1em rgba(0, 0, 0, 0.1);
         border-radius: 1rem;
-    }
-
-    /* Make empty lists droppable */
-    #chapters ul:empty {
-        min-height: .5rem;
     }
 
     /* Chapter lists styling */
@@ -124,7 +173,7 @@
             }
         }
 
-        & > ul {
+        & > div > ul {
             padding-left: 0;
         }
     }
@@ -154,30 +203,12 @@
             <div id="chapters">
                 <h2 class="title">Chapters</h2>
                 <div style="margin: .5rem 0">
-                    <button type="button" @click="chapters.push({ id: Date.now(), title: 'New chapter', children: [] })">Add chapter</button>
+                    <button type="button" @click="chapters.push({ title: 'New chapter', children: [] })">Add chapter</button>
                 </div>
-                <ul x-sort="chapters" group="chapters" x-sort:group="{ name: 'chapters', pull: true, put: true }">
-                    <template x-for="chapter in chapters" :key="chapter.id || chapter.title">
-                        <li x-sort:item="chapter">
-                            <div x-text="chapter.title"></div>
-                            <ul x-sort="chapter.children" group="chapters" x-sort:group="{ name: 'chapters', pull: true, put: true }">
-                                <template x-for="child in chapter.children" :key="child.id || child.title">
-                                    <li x-sort:item="child">
-                                        <div x-text="child.title"></div>
-                                        <ul x-sort="child.children" group="chapters" x-sort:group="{ name: 'chapters', pull: true, put: true }">
-                                            <template x-for="g in child.children" :key="g.id || g.title">
-                                                <li x-sort:item="g">
-                                                    <div x-text="g.title"></div>
-                                                </li>
-                                            </template>
-                                        </ul>
-                                    </li>
-                                </template>
-                            </ul>
-                        </li>
-                    </template>
-                </ul>
+                <div x-html="renderChapters(chapters)"></div>
             </div>
+
+            <pre x-text="JSON.stringify(chapters, null, 2)"></pre>
 
             <button type="submit">Save</button>
         </form>
