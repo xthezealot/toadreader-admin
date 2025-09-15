@@ -94,21 +94,23 @@
 
 
         makeChaptersSortable() {
-            const ul = document.querySelector("#chapters ul")
-            console.log(ul)
-            Sortable.create(ul, {
-                group: "chapters",
-                handle: "div",
-                animation: 150,
-                fallbackOnBody: true,
-                swapThreshold: 0.65,
-                onEnd: () => this.afterSort()
+            const uls = document.querySelectorAll("#chapters ul")
+            uls.forEach(ul => {
+                Sortable.create(ul, {
+                    group: "chapters",
+                    animation: 150,
+                    fallbackOnBody: true,
+                    swapThreshold: 0.65,
+                    onEnd: () => this.afterSort()
+                })
             })
         },
 
 
         async afterSort() {
-            console.log("sorted")
+            this.makeChaptersSortable()
+
+            // todo: update chapters order in this.chapters based on the dom
         },
 
 
