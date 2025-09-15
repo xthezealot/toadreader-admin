@@ -86,7 +86,7 @@
             let html = "<ul>"
             chapters?.map(chapter => {
                 const childrenHtml = this.renderChapters(chapter.children)
-                html += `<li><div>${chapter.title}</div>${childrenHtml}</li>`
+                html += `<li><div class="title">${chapter.title}</div>${childrenHtml}</li>`
             })
             html += "</ul>"
             return html
@@ -107,8 +107,16 @@
         },
 
 
-        async afterSort() {
-            // todo: update chapters order in this.chapters based on the dom
+        afterSort() {
+            // update chapters order in this.chapters based on the dom
+            const parse = ul => [...ul.children].map(li => ({
+                title: li.firstElementChild.textContent.trim(),
+                children: li.children[1] ? parse(li.children[1]) : []
+            }))
+            this.chapters = parse(document.querySelector("#chapters ul"))
+
+            // reinitialize sortability after alpine re-renders chapters
+            this.$nextTick(() => this.makeChaptersSortable())
         },
 
 
