@@ -44,7 +44,7 @@
         async init() {
             await this.loadAudiobook()
             this.ensureChapterCids(this.chapters)
-            this.makeChaptersSortable()
+            this.$nextTick(() => this.makeChaptersSortable())
         },
 
 
