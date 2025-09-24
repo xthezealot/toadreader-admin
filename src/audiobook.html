@@ -257,39 +257,75 @@
 
 
 <style>
-    .cover-preview {
-        max-width: 300px;
-        max-height: 300px;
-        box-shadow: 0 0 1em rgba(0, 0, 0, 0.1);
-        border-radius: 1rem;
-    }
+    #audiobook {
+        form {
+            display: grid;
+            gap: 2rem;
+            max-width: 960px;
+        }
 
-    /* Chapter lists styling */
-    #chapters {
-        ul {
-            list-style: none;
-            padding-bottom: 1rem;
-            padding-left: 1rem;
+        .form-section {
+            display: grid;
+            gap: 1rem;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid #dee2e6;
+            background: #f8f9fa;
 
-            li {
-                cursor: move;
-                background: rgba(52, 58, 64, .05);
-                border-radius: .5rem;
-                padding: .5rem 1rem;
-
-                & + li {
-                    margin-top: .5rem;
-                }
-
-                & > div {
-                    margin-bottom: .5rem;
-                }
+            .title {
+                margin: 0;
+                font-size: 1rem;
+                letter-spacing: .05em;
+                text-transform: uppercase;
             }
         }
 
-        .chapter-upload-button {
+        .form-grid {
+            display: grid;
+            gap: 1.5rem;
+
+            @media (min-width: 768px) {
+                grid-template-columns: minmax(200px, 1fr) 2fr;
+                align-items: start;
+            }
+        }
+
+        .cover-card {
+            display: grid;
+            gap: 1rem;
+            justify-items: start;
+
+            .cover-frame {
+                position: relative;
+            }
+        }
+
+        .cover-preview {
+            max-width: 220px;
+            width: 100%;
+            border-radius: 1rem;
+            box-shadow: 0 0 1em rgba(0, 0, 0, 0.1);
+        }
+
+        .cover-placeholder {
+            width: 220px;
+            aspect-ratio: 3 / 4;
+            border-radius: 1rem;
+            border: 1px dashed #ced4da;
+            display: grid;
+            place-items: center;
+            color: #adb5bd;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            font-weight: 600;
+            background: #fff;
+        }
+
+        .file-upload-button {
             position: relative;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
 
             input[type="file"] {
                 position: absolute;
@@ -299,39 +335,119 @@
             }
         }
 
-        & > div > ul {
-            padding-left: 0;
+        .meta {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .field {
+            display: grid;
+            gap: .5rem;
+
+            span {
+                font-size: .75rem;
+                font-weight: 600;
+                letter-spacing: .08em;
+                text-transform: uppercase;
+                color: #868e96;
+            }
+
+            input {
+                width: 100%;
+            }
+        }
+
+        #chapters {
+            display: grid;
+            gap: 1rem;
+
+            .chapter-actions {
+                display: flex;
+                flex-wrap: wrap;
+                gap: .75rem;
+            }
+
+            ul {
+                list-style: none;
+                padding-bottom: 1rem;
+                padding-left: 1rem;
+
+                li {
+                    cursor: move;
+                    background: rgba(52, 58, 64, .05);
+                    border-radius: .5rem;
+                    padding: .75rem 1rem;
+
+                    & + li {
+                        margin-top: .5rem;
+                    }
+
+                    & > div {
+                        display: grid;
+                        gap: .5rem;
+                        margin-bottom: .75rem;
+                    }
+
+                    input[type="text"],
+                    input[type="file"],
+                    audio {
+                        width: 100%;
+                    }
+                }
+            }
+
+            & > ul {
+                padding-left: 0;
+            }
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
         }
     }
 </style>
 
 
-<div x-data="audiobook" @end.window="syncChaptersFromDom($event)">
+<div id="audiobook" x-data="audiobook" @end.window="syncChaptersFromDom($event)">
     <dashboard-shell :title="title">
         <form @submit.prevent="saveAudiobook">
-            <!-- cover -->
-            <template x-if="coverUrl">
-                <img class="cover-preview" :src="coverUrl" />
-            </template>
+            <section class="form-section">
+                <h2 class="title">Details</h2>
+                <div class="form-grid">
+                    <div class="cover-card">
+                        <div class="cover-frame">
+                            <template x-if="coverUrl">
+                                <img class="cover-preview" :src="coverUrl" />
+                            </template>
+                            <template x-if="!coverFile && !existentCover">
+                                <div class="cover-placeholder">No cover</div>
+                            </template>
+                        </div>
+                        <label class="button file-upload-button">
+                            <span x-text="coverFile || existentCover ? 'Change cover' : 'Upload cover'"></span>
+                            <input type="file" name="cover" @change="coverFile = $event.target.files[0]" accept="image/*">
+                        </label>
+                    </div>
+                    <div class="meta">
+                        <div class="field">
+                            <span>Title</span>
+                            <input type="text" name="title" x-model="title" placeholder="Title" required>
+                        </div>
+                        <div class="field">
+                            <span>Author</span>
+                            <input type="text" name="author" x-model="author" placeholder="Author">
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-            <div>
-                <input type="file" name="cover" @change="coverFile = $event.target.files[0]" accept="image/*">
-            </div>
-
-            <!-- title and author -->
-            <div>
-                <input type="text" name="title" x-model="title" placeholder="Title" required></input>
-            </div>
-            <div>
-                <input type="text" name="author" x-model="author" placeholder="Author"></input>
-            </div>
-
-            <div id="chapters">
+            <section class="form-section" id="chapters">
                 <h2 class="title">Chapters</h2>
-                <div style="margin: .5rem 0">
+                <div class="chapter-actions">
                     <button type="button" @click="chapters.push(createEmptyChapter())">Add chapter</button>
-                    <label class="button chapter-upload-button">
-                        Add chapters form files
+                    <label class="button file-upload-button">
+                        Add chapters from files
                         <input type="file" multiple accept="audio/*" @change="handleChapterFiles($event.target)">
                     </label>
                 </div>
@@ -434,11 +550,16 @@
                         </li>
                     </template>
                 </ul>
+            </section>
+
+            <section class="form-section">
+                <h2 class="title">Chapter data</h2>
+                <pre x-text="JSON.stringify(chapters, null, 2)"></pre>
+            </section>
+
+            <div class="form-actions">
+                <button type="submit">Save</button>
             </div>
-
-            <pre x-text="JSON.stringify(chapters, null, 2)"></pre>
-
-            <button type="submit">Save</button>
         </form>
     </dashboard-shell>
 </div>
