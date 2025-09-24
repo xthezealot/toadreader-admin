@@ -7,38 +7,7 @@
         author: null,
         existentCover: null,
         coverFile: null,
-        chapters: [
-            {
-                title: "One",
-                children: [
-                    {
-                        title: "Two",
-                        children: [
-                            {
-                                title: "Three",
-                                oldFile: "hello.weba"
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                title: "Four",
-                children: [
-                    {
-                        title: "Five",
-                        children: [
-                            {
-                                title: "Six",
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                title: "Seven",
-            }
-        ],
+        chapters: [],
 
 
         async init() {
@@ -66,8 +35,7 @@
                     this.title = audiobook.title
                     this.author = audiobook.author
                     this.existentCover = audiobook.cover
-                    this.chapters = audiobook.chapters || []
-                    this.chaptersFromDb(this.chapters)
+                    this.chapters = this.normalizeChapter(audiobook.chapters || [])
                 } else {
                     console.error("Failed to load audiobook")
                 }
@@ -77,14 +45,44 @@
         },
 
 
-        chaptersFromDb(list) {
-            if (!Array.isArray(list)) return
-            for (const ch of list) {
-                ch.oldFile = ch.file
-                delete ch.file
-                if (!Array.isArray(ch.children)) ch.children = []
-                if (ch.children.length) this.chaptersFromDb(ch.children)
+        generateChapterKey() {
+            return `ch-${Math.random().toString(36).slice(2, 10)}`
+        },
+
+
+        normalizeChapter(list) {
+            if (!Array.isArray(list)) return []
+            return list.map(chapter => {
+                const normalized = { ...(chapter || {}) }
+                normalized.oldFile = chapter?.file ?? chapter?.oldFile ?? null
+                delete normalized.file
+                const children = Array.isArray(chapter?.children) ? chapter.children : []
+                normalized.children = this.normalizeChapter(children)
+                normalized._key = chapter?.id != null ? `id-${chapter.id}` : (chapter?._key || this.generateChapterKey())
+                return normalized
+            })
+        },
+
+
+        createEmptyChapter(title = "New chapter") {
+            return {
+                title,
+                oldFile: null,
+                children: [],
+                _key: this.generateChapterKey()
             }
+        },
+
+
+        serializeChapters(list) {
+            if (!Array.isArray(list)) return []
+            return list.map(chapter => {
+                const { _key, ...rest } = chapter || {}
+                return {
+                    ...rest,
+                    children: this.serializeChapters(chapter?.children)
+                }
+            })
         },
 
 
@@ -102,7 +100,7 @@
                 else if (this.existentCover) formData.set("cover", this.existentCover)
                 else formData.set("cover", null)
                 // chapters
-                formData.append("chapters", JSON.stringify(this.chapters))
+                formData.append("chapters", JSON.stringify(this.serializeChapters(this.chapters)))
 
                 const response = await fetch(`http://localhost:4567/audiobooks${this.id ? `/${this.id}` : ""}`, {
                     method: this.id ? "PUT" : "POST",
@@ -185,10 +183,10 @@
             <div id="chapters">
                 <h2 class="title">Chapters</h2>
                 <div style="margin: .5rem 0">
-                    <button type="button" @click="chapters.push({ title: 'New chapter', children: [] })">Add chapter</button>
+                    <button type="button" @click="chapters.push(createEmptyChapter())">Add chapter</button>
                 </div>
                 <ul x-sort="chapters" group="chapters" x-sort:group="chapters">
-                    <template x-for="chapterL1 in chapters">
+                    <template x-for="chapterL1 in chapters" :key="chapterL1._key">
                         <li x-sort:item="chapterL1">
                             <div x-data="{ chapter: chapterL1, audioPreview: chapterL1.oldFile ? 'http://localhost:4567/storage/' + chapterL1.oldFile : null }">
                                 <input type="text" name="title" x-model="chapter.title">
@@ -197,7 +195,7 @@
                                 <audio controls x-show="audioPreview" :src="audioPreview"></audio>
                             </div>
                             <ul x-sort="chapterL1.children" group="chapters" x-sort:group="chapters">
-                                <template x-for="chapterL2 in chapterL1.children">
+                                <template x-for="chapterL2 in chapterL1.children" :key="chapterL2._key">
                                     <li x-sort:item="chapterL2">
                                         <div x-data="{ chapter: chapterL2, audioPreview: chapterL2.oldFile ? 'http://localhost:4567/storage/' + chapterL2.oldFile : null }">
                                             <input type="text" name="title" x-model="chapter.title">
@@ -206,7 +204,7 @@
                                             <audio controls x-show="audioPreview" :src="audioPreview"></audio>
                                         </div>
                                         <ul x-sort="chapterL2.children" group="chapters" x-sort:group="chapters">
-                                            <template x-for="chapterL3 in chapterL2.children">
+                                            <template x-for="chapterL3 in chapterL2.children" :key="chapterL3._key">
                                                 <li x-sort:item="chapterL3">
                                                     <div x-data="{ chapter: chapterL3, audioPreview: chapterL3.oldFile ? 'http://localhost:4567/storage/' + chapterL3.oldFile : null }">
                                                         <input type="text" name="title" x-model="chapter.title">
