@@ -67,7 +67,7 @@
                     this.author = audiobook.author
                     this.existentCover = audiobook.cover
                     this.chapters = audiobook.chapters || []
-                    this.ensureChildren(this.chapters)
+                    this.chaptersFromDb(this.chapters)
                 } else {
                     console.error("Failed to load audiobook")
                 }
@@ -77,11 +77,13 @@
         },
 
 
-        ensureChildren(list) {
+        chaptersFromDb(list) {
             if (!Array.isArray(list)) return
             for (const ch of list) {
+                ch.oldFile = ch.file
+                delete ch.file
                 if (!Array.isArray(ch.children)) ch.children = []
-                if (ch.children.length) this.ensureChildren(ch.children)
+                if (ch.children.length) this.chaptersFromDb(ch.children)
             }
         },
 
