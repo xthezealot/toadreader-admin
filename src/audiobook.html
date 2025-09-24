@@ -77,6 +77,34 @@
         },
 
 
+        titleFromFile(file) {
+            if (!file?.name) return "New chapter"
+            const dotIndex = file.name.lastIndexOf(".")
+            if (dotIndex > 0) return file.name.slice(0, dotIndex)
+            return file.name
+        },
+
+
+        addChaptersFromFiles(fileList) {
+            if (!fileList || !fileList.length) return
+            Array.from(fileList).forEach(file => {
+                if (!file) return
+                if (file.type && !file.type.startsWith("audio/")) return
+                const chapter = this.createEmptyChapter(this.titleFromFile(file))
+                chapter.newFile = file
+                chapter.newFileUrl = URL.createObjectURL(file)
+                this.chapters.push(chapter)
+            })
+        },
+
+
+        handleChapterFiles(input) {
+            if (!input) return
+            this.addChaptersFromFiles(input.files)
+            input.value = ""
+        },
+
+
         serializeChapters(root, formData, index = null) {
             if (!root) return []
             const chapterIndex = index || this.buildChapterIndex()
@@ -290,6 +318,7 @@
                 <h2 class="title">Chapters</h2>
                 <div style="margin: .5rem 0">
                     <button type="button" @click="chapters.push(createEmptyChapter())">Add chapter</button>
+                    <input type="file" multiple accept="audio/*" @change="handleChapterFiles($event.target)" style="margin-left: .5rem">
                 </div>
                 <ul x-sort="chapters" group="chapters" x-sort:group="chapters">
                     <template x-for="chapterL1 in chapters" :key="chapterL1._key">
