@@ -73,14 +73,28 @@
         },
 
 
-        serializeChapters(list) {
-            if (!Array.isArray(list)) return []
-            return list.map(chapter => {
-                const { _key, ...rest } = chapter || {}
-                return {
-                    ...rest,
-                    children: this.serializeChapters(chapter?.children)
+        serializeChapters(root, formData) {
+            if (!root) return []
+            const items = Array.from(root.children).filter(el => el.tagName === "LI")
+            return items.map(item => {
+                const chapter = {}
+                const titleInput = item.querySelector('input[name="title"]')
+                chapter.title = titleInput ? titleInput.value : ""
+                const newFileInput = item.querySelector('input[name="newFile"]')
+                const oldFileInput = item.querySelector('input[name="oldFile"]')
+                const file = newFileInput?.files?.[0] || null
+                if (file) {
+                    const ext = file.name.includes('.') ? `.${file.name.split('.').pop()}` : ""
+                    const filename = `${this.generateChapterKey()}${ext}`
+                    formData.set(filename, file)
+                    chapter.file = filename
+                } else if (oldFileInput?.value) {
+                    chapter.file = oldFileInput.value
                 }
+                const childList = Array.from(item.children).find(el => el.tagName === "UL") || null
+                const children = this.serializeChapters(childList, formData)
+                if (children.length) chapter.children = children
+                return chapter
             })
         },
 
@@ -93,13 +107,17 @@
 
         async saveAudiobook(event) {
             try {
-                const formData = new FormData(event.target)
+                const formData = new FormData()
+                formData.set("title", this.title ?? "")
+                formData.set("author", this.author ?? "")
                 // cover
                 if (this.coverFile) formData.set("cover", this.coverFile)
                 else if (this.existentCover) formData.set("cover", this.existentCover)
                 else formData.set("cover", null)
                 // chapters
-                formData.append("chapters", JSON.stringify(this.serializeChapters(this.chapters)))
+                const chaptersRoot = this.$el.querySelector("#chapters > ul")
+                const chapters = this.serializeChapters(chaptersRoot, formData)
+                formData.set("chapters", JSON.stringify(chapters))
 
                 const response = await fetch(`http://localhost:4567/audiobooks${this.id ? `/${this.id}` : ""}`, {
                     method: this.id ? "PUT" : "POST",
