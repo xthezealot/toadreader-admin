@@ -35,7 +35,7 @@
                     this.title = audiobook.title
                     this.author = audiobook.author
                     this.existentCover = audiobook.cover
-                    this.chapters = this.normalizeChapter(audiobook.chapters)
+                    this.chapters = this.normalizeChapters(audiobook.chapters)
                 } else {
                     console.error("Failed to load audiobook")
                 }
@@ -50,14 +50,13 @@
         },
 
 
-        normalizeChapter(list) {
+        normalizeChapters(list) {
             if (!Array.isArray(list)) return []
             return list.map(chapter => {
                 const normalized = { ...(chapter || {}) }
                 normalized.oldFile = chapter?.file ?? chapter?.oldFile ?? null
                 delete normalized.file
-                const children = Array.isArray(chapter?.children) ? chapter.children : []
-                normalized.children = this.normalizeChapter(children)
+                normalized.children = this.normalizeChapters(chapter.children)
                 normalized._key = chapter?.id != null ? `id-${chapter.id}` : (chapter?._key || this.generateChapterKey())
                 return normalized
             })
