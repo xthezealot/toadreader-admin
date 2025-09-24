@@ -35,7 +35,7 @@
                     this.title = audiobook.title
                     this.author = audiobook.author
                     this.existentCover = audiobook.cover
-                    this.chapters = this.normalizeChapter(audiobook.chapters || [])
+                    this.chapters = this.normalizeChapter(audiobook.chapters)
                 } else {
                     console.error("Failed to load audiobook")
                 }
