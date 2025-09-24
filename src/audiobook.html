@@ -58,6 +58,8 @@
                 delete normalized.file
                 normalized.children = this.normalizeChapters(chapter.children)
                 normalized._key = chapter?.id != null ? `id-${chapter.id}` : (chapter?._key || this.generateChapterKey())
+                normalized.newFile = chapter?.newFile ?? null
+                normalized.newFileUrl = chapter?.newFileUrl ?? null
                 return normalized
             })
         },
@@ -68,31 +70,42 @@
                 title,
                 oldFile: null,
                 children: [],
-                _key: this.generateChapterKey()
+                _key: this.generateChapterKey(),
+                newFile: null,
+                newFileUrl: null
             }
         },
 
 
-        serializeChapters(root, formData) {
+        serializeChapters(root, formData, index = null) {
             if (!root) return []
+            const chapterIndex = index || this.buildChapterIndex()
             const items = Array.from(root.children).filter(el => el.tagName === "LI")
             return items.map(item => {
+                let key = item.dataset.chapterKey || null
+                if (!key) {
+                    key = this.generateChapterKey()
+                    item.dataset.chapterKey = key
+                }
+                const chapterRef = chapterIndex.get(item.dataset.chapterKey) || null
                 const chapter = {}
                 const titleInput = item.querySelector('input[name="title"]')
                 chapter.title = titleInput ? titleInput.value : ""
                 const newFileInput = item.querySelector('input[name="newFile"]')
                 const oldFileInput = item.querySelector('input[name="oldFile"]')
-                const file = newFileInput?.files?.[0] || null
+                const storedFile = chapterRef?.newFile || null
+                const file = newFileInput?.files?.[0] || storedFile || null
+                if (chapterRef && file) chapterRef.newFile = file
                 if (file) {
                     const ext = file.name.includes('.') ? `.${file.name.split('.').pop()}` : ""
                     const filename = `${this.generateChapterKey()}${ext}`
                     formData.set(filename, file)
                     chapter.file = filename
-                } else if (oldFileInput?.value) {
-                    chapter.file = oldFileInput.value
+                } else if (oldFileInput?.value || chapterRef?.oldFile) {
+                    chapter.file = oldFileInput?.value || chapterRef?.oldFile
                 }
                 const childList = Array.from(item.children).find(el => el.tagName === "UL") || null
-                const children = this.serializeChapters(childList, formData)
+                const children = this.serializeChapters(childList, formData, chapterIndex)
                 if (children.length) chapter.children = children
                 return chapter
             })
@@ -103,7 +116,12 @@
             if (!Array.isArray(list)) return
             const index = list.findIndex(item => item._key === chapter?._key)
             if (index === -1) return
-            list.splice(index, 1)
+            const [removed] = list.splice(index, 1)
+            if (removed?.newFileUrl) URL.revokeObjectURL(removed.newFileUrl)
+            if (removed) {
+                removed.newFile = null
+                removed.newFileUrl = null
+            }
         },
 
 
@@ -139,6 +157,7 @@
                     chapter._key = key
                     index.set(key, chapter)
                 }
+                chapter._key = key
                 const titleInput = item.querySelector('input[name="title"]')
                 if (titleInput) chapter.title = titleInput.value
                 const oldFileInput = item.querySelector('input[name="oldFile"]')
@@ -275,30 +294,90 @@
                 <ul x-sort="chapters" group="chapters" x-sort:group="chapters">
                     <template x-for="chapterL1 in chapters" :key="chapterL1._key">
                         <li x-sort:item="chapterL1" :data-chapter-key="chapterL1._key">
-                            <div x-data="{ chapter: chapterL1, audioPreview: chapterL1.oldFile ? 'http://localhost:4567/storage/' + chapterL1.oldFile : null }">
+                            <div x-data="{
+                                chapter: chapterL1,
+                                audioPreview: null,
+                                init() {
+                                    this.audioPreview = this.computePreview()
+                                },
+                                computePreview() {
+                                    if (this.chapter?.newFileUrl) return this.chapter.newFileUrl
+                                    if (this.chapter?.oldFile) return 'http://localhost:4567/storage/' + this.chapter.oldFile
+                                    return null
+                                },
+                                setNewFile(file) {
+                                    if (this.chapter?.newFileUrl) {
+                                        URL.revokeObjectURL(this.chapter.newFileUrl)
+                                        this.chapter.newFileUrl = null
+                                    }
+                                    this.chapter.newFile = file
+                                    if (file) this.chapter.newFileUrl = URL.createObjectURL(file)
+                                    this.audioPreview = this.computePreview()
+                                }
+                            }">
                                 <input type="text" name="title" x-model="chapter.title">
                                 <input type="text" name="oldFile" x-model="chapter.oldFile" disabled>
-                                <input type="file" name="newFile" @change="const file = $event.target.files[0] || null; audioPreview = file ? URL.createObjectURL(file) : (chapter.oldFile ? 'http://localhost:4567/storage/' + chapter.oldFile : null)">
+                                <input type="file" name="newFile" @change="setNewFile($event.target.files[0] || null)">
                                 <audio controls x-show="audioPreview" :src="audioPreview"></audio>
                             </div>
                             <button type="button" @click="removeChapter(chapters, chapterL1)">Delete</button>
                             <ul x-sort="chapterL1.children" group="chapters" x-sort:group="chapters">
                                 <template x-for="chapterL2 in chapterL1.children" :key="chapterL2._key">
                                     <li x-sort:item="chapterL2" :data-chapter-key="chapterL2._key">
-                                        <div x-data="{ chapter: chapterL2, audioPreview: chapterL2.oldFile ? 'http://localhost:4567/storage/' + chapterL2.oldFile : null }">
+                                        <div x-data="{
+                                            chapter: chapterL2,
+                                            audioPreview: null,
+                                            init() {
+                                                this.audioPreview = this.computePreview()
+                                            },
+                                            computePreview() {
+                                                if (this.chapter?.newFileUrl) return this.chapter.newFileUrl
+                                                if (this.chapter?.oldFile) return 'http://localhost:4567/storage/' + this.chapter.oldFile
+                                                return null
+                                            },
+                                            setNewFile(file) {
+                                                if (this.chapter?.newFileUrl) {
+                                                    URL.revokeObjectURL(this.chapter.newFileUrl)
+                                                    this.chapter.newFileUrl = null
+                                                }
+                                                this.chapter.newFile = file
+                                                if (file) this.chapter.newFileUrl = URL.createObjectURL(file)
+                                                this.audioPreview = this.computePreview()
+                                            }
+                                        }">
                                             <input type="text" name="title" x-model="chapter.title">
                                             <input type="text" name="oldFile" x-model="chapter.oldFile" disabled>
-                                            <input type="file" name="newFile" @change="const file = $event.target.files[0] || null; audioPreview = file ? URL.createObjectURL(file) : (chapter.oldFile ? 'http://localhost:4567/storage/' + chapter.oldFile : null)">
+                                            <input type="file" name="newFile" @change="setNewFile($event.target.files[0] || null)">
                                             <audio controls x-show="audioPreview" :src="audioPreview"></audio>
                                         </div>
                                         <button type="button" @click="removeChapter(chapterL1.children, chapterL2)">Delete</button>
                                         <ul x-sort="chapterL2.children" group="chapters" x-sort:group="chapters">
                                             <template x-for="chapterL3 in chapterL2.children" :key="chapterL3._key">
                                                 <li x-sort:item="chapterL3" :data-chapter-key="chapterL3._key">
-                                                    <div x-data="{ chapter: chapterL3, audioPreview: chapterL3.oldFile ? 'http://localhost:4567/storage/' + chapterL3.oldFile : null }">
+                                                    <div x-data="{
+                                                        chapter: chapterL3,
+                                                        audioPreview: null,
+                                                        init() {
+                                                            this.audioPreview = this.computePreview()
+                                                        },
+                                                        computePreview() {
+                                                            if (this.chapter?.newFileUrl) return this.chapter.newFileUrl
+                                                            if (this.chapter?.oldFile) return 'http://localhost:4567/storage/' + this.chapter.oldFile
+                                                            return null
+                                                        },
+                                                        setNewFile(file) {
+                                                            if (this.chapter?.newFileUrl) {
+                                                                URL.revokeObjectURL(this.chapter.newFileUrl)
+                                                                this.chapter.newFileUrl = null
+                                                            }
+                                                            this.chapter.newFile = file
+                                                            if (file) this.chapter.newFileUrl = URL.createObjectURL(file)
+                                                            this.audioPreview = this.computePreview()
+                                                        }
+                                                    }">
                                                         <input type="text" name="title" x-model="chapter.title">
                                                         <input type="text" name="oldFile" x-model="chapter.oldFile" disabled>
-                                                        <input type="file" name="newFile" @change="const file = $event.target.files[0] || null; audioPreview = file ? URL.createObjectURL(file) : (chapter.oldFile ? 'http://localhost:4567/storage/' + chapter.oldFile : null)">
+                                                        <input type="file" name="newFile" @change="setNewFile($event.target.files[0] || null)">
                                                         <audio controls x-show="audioPreview" :src="audioPreview"></audio>
                                                     </div>
                                                     <button type="button" @click="removeChapter(chapterL2.children, chapterL3)">Delete</button>
