@@ -287,6 +287,18 @@
             }
         }
 
+        .chapter-upload-button {
+            position: relative;
+            display: inline-block;
+
+            input[type="file"] {
+                position: absolute;
+                inset: 0;
+                opacity: 0;
+                cursor: pointer;
+            }
+        }
+
         & > div > ul {
             padding-left: 0;
         }
@@ -318,7 +330,10 @@
                 <h2 class="title">Chapters</h2>
                 <div style="margin: .5rem 0">
                     <button type="button" @click="chapters.push(createEmptyChapter())">Add chapter</button>
-                    <input type="file" multiple accept="audio/*" @change="handleChapterFiles($event.target)" style="margin-left: .5rem">
+                    <label class="button chapter-upload-button">
+                        Add chapters form files
+                        <input type="file" multiple accept="audio/*" @change="handleChapterFiles($event.target)">
+                    </label>
                 </div>
                 <ul x-sort="chapters" group="chapters" x-sort:group="chapters">
                     <template x-for="chapterL1 in chapters" :key="chapterL1._key">
