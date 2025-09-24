@@ -99,6 +99,14 @@
         },
 
 
+        removeChapter(list, chapter) {
+            if (!Array.isArray(list)) return
+            const index = list.findIndex(item => item._key === chapter?._key)
+            if (index === -1) return
+            list.splice(index, 1)
+        },
+
+
         get coverUrl() {
             if (this.coverFile) return URL.createObjectURL(this.coverFile)
             return this.existentCover ? `http://localhost:4567/storage/${this.existentCover}` : null
@@ -211,6 +219,7 @@
                                 <input type="file" name="newFile" @change="const file = $event.target.files[0] || null; audioPreview = file ? URL.createObjectURL(file) : (chapter.oldFile ? 'http://localhost:4567/storage/' + chapter.oldFile : null)">
                                 <audio controls x-show="audioPreview" :src="audioPreview"></audio>
                             </div>
+                            <button type="button" @click="removeChapter(chapters, chapterL1)">Delete</button>
                             <ul x-sort="chapterL1.children" group="chapters" x-sort:group="chapters">
                                 <template x-for="chapterL2 in chapterL1.children" :key="chapterL2._key">
                                     <li x-sort:item="chapterL2">
@@ -220,6 +229,7 @@
                                             <input type="file" name="newFile" @change="const file = $event.target.files[0] || null; audioPreview = file ? URL.createObjectURL(file) : (chapter.oldFile ? 'http://localhost:4567/storage/' + chapter.oldFile : null)">
                                             <audio controls x-show="audioPreview" :src="audioPreview"></audio>
                                         </div>
+                                        <button type="button" @click="removeChapter(chapterL1.children, chapterL2)">Delete</button>
                                         <ul x-sort="chapterL2.children" group="chapters" x-sort:group="chapters">
                                             <template x-for="chapterL3 in chapterL2.children" :key="chapterL3._key">
                                                 <li x-sort:item="chapterL3">
@@ -229,6 +239,7 @@
                                                         <input type="file" name="newFile" @change="const file = $event.target.files[0] || null; audioPreview = file ? URL.createObjectURL(file) : (chapter.oldFile ? 'http://localhost:4567/storage/' + chapter.oldFile : null)">
                                                         <audio controls x-show="audioPreview" :src="audioPreview"></audio>
                                                     </div>
+                                                    <button type="button" @click="removeChapter(chapterL2.children, chapterL3)">Delete</button>
                                                 </li>
                                             </template>
                                         </ul>
