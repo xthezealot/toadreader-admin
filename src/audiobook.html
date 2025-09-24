@@ -107,6 +107,68 @@
         },
 
 
+        buildChapterIndex(list = this.chapters, map = new Map()) {
+            if (!Array.isArray(list)) return map
+            list.forEach(chapter => {
+                if (!chapter || typeof chapter !== "object") return
+                if (chapter._key) map.set(chapter._key, chapter)
+                this.buildChapterIndex(chapter.children, map)
+            })
+            return map
+        },
+
+
+        applyChapterOrder(target, source) {
+            if (!Array.isArray(target)) return
+            target.splice(0, target.length, ...(Array.isArray(source) ? source : []))
+        },
+
+
+        collectChaptersFromDom(listEl, index) {
+            if (!listEl) return []
+            const items = Array.from(listEl.children).filter(el => el.tagName === "LI")
+            return items.map(item => {
+                let key = item.dataset.chapterKey || null
+                if (!key) {
+                    key = this.generateChapterKey()
+                    item.dataset.chapterKey = key
+                }
+                let chapter = index.get(key)
+                if (!chapter) {
+                    chapter = this.createEmptyChapter()
+                    chapter._key = key
+                    index.set(key, chapter)
+                }
+                const titleInput = item.querySelector('input[name="title"]')
+                if (titleInput) chapter.title = titleInput.value
+                const oldFileInput = item.querySelector('input[name="oldFile"]')
+                chapter.oldFile = oldFileInput?.value || null
+                const childList = Array.from(item.children).find(el => el.tagName === "UL") || null
+                const orderedChildren = this.collectChaptersFromDom(childList, index)
+                if (!Array.isArray(chapter.children)) chapter.children = []
+                this.applyChapterOrder(chapter.children, orderedChildren)
+                return chapter
+            })
+        },
+
+
+        syncChaptersFromDom(event) {
+            try {
+                if (event?.target) {
+                    const chaptersRoot = this.$el.querySelector("#chapters")
+                    if (!chaptersRoot || !chaptersRoot.contains(event.target)) return
+                }
+                const rootList = this.$el.querySelector("#chapters > ul")
+                if (!rootList) return
+                const index = this.buildChapterIndex()
+                const ordered = this.collectChaptersFromDom(rootList, index)
+                this.applyChapterOrder(this.chapters, ordered)
+            } catch (error) {
+                console.error("Failed to sync chapters", error)
+            }
+        },
+
+
         get coverUrl() {
             if (this.coverFile) return URL.createObjectURL(this.coverFile)
             return this.existentCover ? `http://localhost:4567/storage/${this.existentCover}` : null
@@ -185,7 +247,7 @@
 </style>
 
 
-<div x-data="audiobook" @setChaptersFromDom.window="setChaptersFromDom">
+<div x-data="audiobook" @end.window="syncChaptersFromDom($event)">
     <dashboard-shell :title="title">
         <form @submit.prevent="saveAudiobook">
             <!-- cover -->
@@ -212,7 +274,7 @@
                 </div>
                 <ul x-sort="chapters" group="chapters" x-sort:group="chapters">
                     <template x-for="chapterL1 in chapters" :key="chapterL1._key">
-                        <li x-sort:item="chapterL1">
+                        <li x-sort:item="chapterL1" :data-chapter-key="chapterL1._key">
                             <div x-data="{ chapter: chapterL1, audioPreview: chapterL1.oldFile ? 'http://localhost:4567/storage/' + chapterL1.oldFile : null }">
                                 <input type="text" name="title" x-model="chapter.title">
                                 <input type="text" name="oldFile" x-model="chapter.oldFile" disabled>
@@ -222,7 +284,7 @@
                             <button type="button" @click="removeChapter(chapters, chapterL1)">Delete</button>
                             <ul x-sort="chapterL1.children" group="chapters" x-sort:group="chapters">
                                 <template x-for="chapterL2 in chapterL1.children" :key="chapterL2._key">
-                                    <li x-sort:item="chapterL2">
+                                    <li x-sort:item="chapterL2" :data-chapter-key="chapterL2._key">
                                         <div x-data="{ chapter: chapterL2, audioPreview: chapterL2.oldFile ? 'http://localhost:4567/storage/' + chapterL2.oldFile : null }">
                                             <input type="text" name="title" x-model="chapter.title">
                                             <input type="text" name="oldFile" x-model="chapter.oldFile" disabled>
@@ -232,7 +294,7 @@
                                         <button type="button" @click="removeChapter(chapterL1.children, chapterL2)">Delete</button>
                                         <ul x-sort="chapterL2.children" group="chapters" x-sort:group="chapters">
                                             <template x-for="chapterL3 in chapterL2.children" :key="chapterL3._key">
-                                                <li x-sort:item="chapterL3">
+                                                <li x-sort:item="chapterL3" :data-chapter-key="chapterL3._key">
                                                     <div x-data="{ chapter: chapterL3, audioPreview: chapterL3.oldFile ? 'http://localhost:4567/storage/' + chapterL3.oldFile : null }">
                                                         <input type="text" name="title" x-model="chapter.title">
                                                         <input type="text" name="oldFile" x-model="chapter.oldFile" disabled>
