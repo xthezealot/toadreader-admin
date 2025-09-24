@@ -401,6 +401,15 @@
             }
         }
 
+        .danger {
+            background: #c92a2a;
+            color: #fff;
+
+            &:hover {
+                background: #a51122;
+            }
+        }
+
         .form-actions {
             display: flex;
             justify-content: flex-end;
@@ -476,11 +485,11 @@
                                 }
                             }">
                                 <input type="text" name="title" x-model="chapter.title">
-                                <input type="text" name="oldFile" x-model="chapter.oldFile" disabled>
+                                <input type="hidden" name="oldFile" x-model="chapter.oldFile">
                                 <input type="file" name="newFile" @change="setNewFile($event.target.files[0] || null)">
                                 <audio controls x-show="audioPreview" :src="audioPreview"></audio>
                             </div>
-                            <button type="button" @click="removeChapter(chapters, chapterL1)">Delete</button>
+                            <button type="button" class="danger" @click="removeChapter(chapters, chapterL1)">Delete</button>
                             <ul x-sort="chapterL1.children" group="chapters" x-sort:group="chapters">
                                 <template x-for="chapterL2 in chapterL1.children" :key="chapterL2._key">
                                     <li x-sort:item="chapterL2" :data-chapter-key="chapterL2._key">
@@ -506,11 +515,11 @@
                                             }
                                         }">
                                             <input type="text" name="title" x-model="chapter.title">
-                                            <input type="text" name="oldFile" x-model="chapter.oldFile" disabled>
+                                            <input type="hidden" name="oldFile" x-model="chapter.oldFile">
                                             <input type="file" name="newFile" @change="setNewFile($event.target.files[0] || null)">
                                             <audio controls x-show="audioPreview" :src="audioPreview"></audio>
                                         </div>
-                                        <button type="button" @click="removeChapter(chapterL1.children, chapterL2)">Delete</button>
+                                        <button type="button" class="danger" @click="removeChapter(chapterL1.children, chapterL2)">Delete</button>
                                         <ul x-sort="chapterL2.children" group="chapters" x-sort:group="chapters">
                                             <template x-for="chapterL3 in chapterL2.children" :key="chapterL3._key">
                                                 <li x-sort:item="chapterL3" :data-chapter-key="chapterL3._key">
@@ -536,11 +545,11 @@
                                                         }
                                                     }">
                                                         <input type="text" name="title" x-model="chapter.title">
-                                                        <input type="text" name="oldFile" x-model="chapter.oldFile" disabled>
+                                                        <input type="hidden" name="oldFile" x-model="chapter.oldFile">
                                                         <input type="file" name="newFile" @change="setNewFile($event.target.files[0] || null)">
                                                         <audio controls x-show="audioPreview" :src="audioPreview"></audio>
                                                     </div>
-                                                    <button type="button" @click="removeChapter(chapterL2.children, chapterL3)">Delete</button>
+                                                    <button type="button" class="danger" @click="removeChapter(chapterL2.children, chapterL3)">Delete</button>
                                                 </li>
                                             </template>
                                         </ul>
@@ -550,11 +559,6 @@
                         </li>
                     </template>
                 </ul>
-            </section>
-
-            <section class="form-section">
-                <h2 class="title">Chapter data</h2>
-                <pre x-text="JSON.stringify(chapters, null, 2)"></pre>
             </section>
 
             <div class="form-actions">
