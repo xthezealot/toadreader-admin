@@ -258,28 +258,6 @@
 
 <style>
     #audiobook {
-        form {
-            display: grid;
-            gap: 2rem;
-            max-width: 960px;
-        }
-
-        .form-section {
-            display: grid;
-            gap: 1rem;
-            padding: 1.5rem;
-            border-radius: 1rem;
-            border: 1px solid #dee2e6;
-            background: #f8f9fa;
-
-            .title {
-                margin: 0;
-                font-size: 1rem;
-                letter-spacing: .05em;
-                text-transform: uppercase;
-            }
-        }
-
         .form-grid {
             display: grid;
             gap: 1.5rem;
@@ -420,8 +398,8 @@
 
 <div id="audiobook" x-data="audiobook" @end.window="syncChaptersFromDom($event)">
     <dashboard-shell :title="title">
-        <form @submit.prevent="saveAudiobook">
-            <section class="form-section">
+        <form @submit.prevent="saveAudiobook" class="stacked">
+            <section>
                 <h2 class="title">Details</h2>
                 <div class="form-grid">
                     <div class="cover-card">
@@ -451,7 +429,7 @@
                 </div>
             </section>
 
-            <section class="form-section" id="chapters">
+            <section id="chapters">
                 <h2 class="title">Chapters</h2>
                 <div class="chapter-actions">
                     <button type="button" @click="chapters.push(createEmptyChapter())">Add chapter</button>
