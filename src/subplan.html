@@ -1,0 +1,158 @@
+<script>
+    const token = localStorage.getItem("token")
+
+    Alpine.data("subplan", () => ({
+        id: null,
+        name: "",
+        audiobooks: [],
+        selectedAudiobookIds: [],
+
+        async init() {
+            this.extractId()
+            if (!this.id) {
+                console.error("Missing subplan id")
+                location.hash = "subplans.html"
+                return
+            }
+
+            await this.loadData()
+        },
+
+        extractId() {
+            const paramsStr = location.hash.includes("?") ? location.hash.split("?")[1] : ""
+            const params = new URLSearchParams(paramsStr)
+            const idStr = params.get("id")
+            if (!idStr) return
+            this.id = idStr
+        },
+
+        async loadData() {
+            await Promise.all([
+                this.loadAudiobooks(),
+                this.loadSubplanAudiobooks(),
+            ])
+        },
+
+        async loadAudiobooks() {
+            try {
+                const response = await fetch("http://localhost:4567/audiobooks", {
+                    headers: { Authorization: `Bearer ${token}` },
+                })
+
+                if (response.ok) {
+                    this.audiobooks = await response.json()
+                } else {
+                    console.error("Failed to load audiobooks")
+                }
+            } catch (error) {
+                console.error("Network error:", error)
+            }
+        },
+
+        async loadSubplanAudiobooks() {
+            try {
+                const response = await fetch(`http://localhost:4567/subplans/${this.id}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                })
+
+                if (response.ok) {
+                    const payload = await response.json()
+                    this.name = payload?.name ?? this.name
+                    this.selectedAudiobookIds = Array.isArray(payload?.audiobooks) ? payload.audiobooks : []
+                } else {
+                    console.error("Failed to load subplan")
+                }
+            } catch (error) {
+                console.error("Network error:", error)
+            }
+        },
+
+        isSelected(id) {
+            return this.selectedAudiobookIds.includes(id)
+        },
+
+        async toggleAudiobook(id, event) {
+            const checked = event.target.checked
+            const wasSelected = this.isSelected(id)
+
+            try {
+                const response = await fetch(`http://localhost:4567/subplans/${this.id}/audiobooks/${id}`, {
+                    method: checked ? "POST" : "DELETE",
+                    headers: { Authorization: `Bearer ${token}` },
+                })
+
+                if (response.ok) {
+                    if (checked) {
+                        if (!wasSelected) this.selectedAudiobookIds.push(id)
+                    } else {
+                        this.selectedAudiobookIds = this.selectedAudiobookIds.filter(existingId => existingId !== id)
+                    }
+                } else {
+                    event.target.checked = wasSelected
+                    console.error("Failed to update subplan audiobooks")
+                }
+            } catch (error) {
+                event.target.checked = wasSelected
+                console.error("Network error:", error)
+            }
+        },
+    }))
+</script>
+
+
+<style>
+    #subplan {
+        nav {
+            margin: 2rem 0 1rem 0;
+        }
+
+        img {
+            border-radius: .5rem;
+            box-shadow: 0 0 1em rgba(0, 0, 0, 0.1);
+        }
+
+        .no-cover {
+            width: 64px;
+            height: 64px;
+            background: #ced4da;
+            border-radius: .5rem;
+        }
+    }
+</style>
+
+
+<dashboard-shell title="Subplan">
+    <div id="subplan" x-data="subplan">
+        <template x-if="name">
+            <h2 x-text="name" class="strong"></h2>
+        </template>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Select</th>
+                    <th>Cover</th>
+                    <th>Title</th>
+                    <th>Author</th>
+                </tr>
+            </thead>
+            <template x-for="audiobook in audiobooks" :key="audiobook.id">
+                <tr>
+                    <td>
+                        <input type="checkbox" :checked="isSelected(audiobook.id)" @change="toggleAudiobook(audiobook.id, $event)" />
+                    </td>
+                    <td>
+                        <template x-if="audiobook.cover">
+                            <img :src="'http://localhost:4567/storage/' + audiobook.cover" height="64" />
+                        </template>
+                        <template x-if="!audiobook.cover">
+                            <div class="no-cover"></div>
+                        </template>
+                    </td>
+                    <td x-text="audiobook.title" class="strong"></td>
+                    <td x-text="audiobook.author"></td>
+                </tr>
+            </template>
+        </table>
+    </div>
+</dashboard-shell>
