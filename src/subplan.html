@@ -96,16 +96,37 @@
                 console.error("Network error:", error)
             }
         },
+
+        async saveSubplanName() {
+            const trimmedName = this.name?.trim()
+            if (!trimmedName) return
+
+            try {
+                const formData = new FormData()
+                formData.set("name", trimmedName)
+
+                const response = await fetch(`http://localhost:4567/subplans/${this.id}`, {
+                    method: "PUT",
+                    headers: { Authorization: `Bearer ${token}` },
+                    body: formData,
+                })
+
+                if (response.ok) {
+                    this.name = trimmedName
+                    alert("✅ Subscription plan name updated successfully")
+                } else {
+                    console.error("Failed to update subscription plan")
+                }
+            } catch (error) {
+                console.error("Network error:", error)
+            }
+        },
     }))
 </script>
 
 
 <style>
     #subplan {
-        nav {
-            margin: 2rem 0 1rem 0;
-        }
-
         img {
             border-radius: .5rem;
             box-shadow: 0 0 1em rgba(0, 0, 0, 0.1);
@@ -123,32 +144,46 @@
 
 <div id="subplan" x-data="subplan">
     <dashboard-shell :title="name">
-        <table>
-            <thead>
-                <tr>
-                    <th>Select</th>
-                    <th>Cover</th>
-                    <th>Title</th>
-                    <th>Author</th>
-                </tr>
-            </thead>
-            <template x-for="audiobook in audiobooks" :key="audiobook.id">
-                <tr>
-                    <td>
-                        <input type="checkbox" :checked="isSelected(audiobook.id)" @change="toggleAudiobook(audiobook.id, $event)" />
-                    </td>
-                    <td>
-                        <template x-if="audiobook.cover">
-                            <img :src="'http://localhost:4567/storage/' + audiobook.cover" height="64" />
-                        </template>
-                        <template x-if="!audiobook.cover">
-                            <div class="no-cover"></div>
-                        </template>
-                    </td>
-                    <td x-text="audiobook.title" class="strong"></td>
-                    <td x-text="audiobook.author"></td>
-                </tr>
-            </template>
-        </table>
+        <div class="form-stacked">
+            <section>
+                <h2>Details</h2>
+                <form class="field" @submit.prevent="saveSubplanName()">
+                    <span>Name</span>
+                    <input type="text" x-model="name" />
+                    <button type="submit">Save</button>
+                </form>
+            </section>
+
+            <section>
+                <h2>Audiobooks</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Select</th>
+                            <th>Cover</th>
+                            <th>Title</th>
+                            <th>Author</th>
+                        </tr>
+                    </thead>
+                    <template x-for="audiobook in audiobooks" :key="audiobook.id">
+                        <tr>
+                            <td>
+                                <input type="checkbox" :checked="isSelected(audiobook.id)" @change="toggleAudiobook(audiobook.id, $event)" />
+                            </td>
+                            <td>
+                                <template x-if="audiobook.cover">
+                                    <img :src="'http://localhost:4567/storage/' + audiobook.cover" height="64" />
+                                </template>
+                                <template x-if="!audiobook.cover">
+                                    <div class="no-cover"></div>
+                                </template>
+                            </td>
+                            <td x-text="audiobook.title" class="strong"></td>
+                            <td x-text="audiobook.author"></td>
+                        </tr>
+                    </template>
+                </table>
+            </section>
+        </div>
     </dashboard-shell>
 </div>
