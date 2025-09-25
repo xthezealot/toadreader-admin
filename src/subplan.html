@@ -71,28 +71,26 @@
             return this.selectedAudiobookIds.includes(id)
         },
 
-        async toggleAudiobook(id, event) {
-            const checked = event.target.checked
+        async toggleAudiobook(id) {
             const wasSelected = this.isSelected(id)
+            const shouldSelect = !wasSelected
 
             try {
                 const response = await fetch(`http://localhost:4567/subplans/${this.id}/audiobooks/${id}`, {
-                    method: checked ? "POST" : "DELETE",
+                    method: shouldSelect ? "POST" : "DELETE",
                     headers: { Authorization: `Bearer ${token}` },
                 })
 
                 if (response.ok) {
-                    if (checked) {
-                        if (!wasSelected) this.selectedAudiobookIds.push(id)
+                    if (shouldSelect) {
+                        this.selectedAudiobookIds.push(id)
                     } else {
                         this.selectedAudiobookIds = this.selectedAudiobookIds.filter(existingId => existingId !== id)
                     }
                 } else {
-                    event.target.checked = wasSelected
                     console.error("Failed to update subplan audiobooks")
                 }
             } catch (error) {
-                event.target.checked = wasSelected
                 console.error("Network error:", error)
             }
         },
@@ -138,6 +136,22 @@
             background: #ced4da;
             border-radius: .5rem;
         }
+
+        table {
+            .audiobook-row {
+                cursor: pointer;
+
+                &:hover {
+                    background: #f8f9fa;
+                }
+            }
+
+            .status {
+                width: 2rem;
+                text-align: center;
+                font-size: 1.25rem;
+            }
+        }
     }
 </style>
 
@@ -159,17 +173,15 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Select</th>
+                            <th>Status</th>
                             <th>Cover</th>
                             <th>Title</th>
                             <th>Author</th>
                         </tr>
                     </thead>
                     <template x-for="audiobook in audiobooks" :key="audiobook.id">
-                        <tr>
-                            <td>
-                                <input type="checkbox" :checked="isSelected(audiobook.id)" @change="toggleAudiobook(audiobook.id, $event)" />
-                            </td>
+                        <tr class="audiobook-row" @click="toggleAudiobook(audiobook.id)">
+                            <td class="status" x-text="isSelected(audiobook.id) ? '✅' : '❌'"></td>
                             <td>
                                 <template x-if="audiobook.cover">
                                     <img :src="'http://localhost:4567/storage/' + audiobook.cover" height="64" />
