@@ -1,0 +1,322 @@
+<script>
+    const token = localStorage.getItem("token")
+
+    Alpine.data("user", () => ({
+        id: null,
+        email: "",
+        name: "",
+        audiobooks: [],
+        subplans: [],
+        selectedAudiobookIds: [],
+        selectedSubplanIds: [],
+
+        async init() {
+            this.extractId()
+            if (!this.id) {
+                console.error("Missing user id")
+                location.hash = "users.html"
+                return
+            }
+
+            await this.loadData()
+        },
+
+        extractId() {
+            const paramsStr = location.hash.includes("?") ? location.hash.split("?")[1] : ""
+            const params = new URLSearchParams(paramsStr)
+            const idStr = params.get("id")
+            if (!idStr) return
+            this.id = idStr
+        },
+
+        async loadData() {
+            await Promise.all([
+                this.loadUserDetails(),
+                this.loadAvailableAudiobooks(),
+                this.loadAvailableSubplans(),
+                this.loadUserAudiobooks(),
+                this.loadUserSubplans(),
+            ])
+        },
+
+        async loadUserDetails() {
+            try {
+                const response = await fetch(`http://localhost:4567/users/${this.id}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                })
+
+                if (response.ok) {
+                    const payload = await response.json()
+                    this.email = payload?.email ?? this.email
+                    const composedName = [payload?.first_name, payload?.last_name].filter(Boolean).join(" ")
+                    this.name = payload?.name ?? (composedName || this.name)
+                } else {
+                    console.error("Failed to load user")
+                    if (response.status === 404) location.hash = "users.html"
+                }
+            } catch (error) {
+                console.error("Network error:", error)
+            }
+        },
+
+        async loadAvailableAudiobooks() {
+            try {
+                const response = await fetch("http://localhost:4567/audiobooks", {
+                    headers: { Authorization: `Bearer ${token}` },
+                })
+
+                if (response.ok) {
+                    this.audiobooks = await response.json()
+                } else {
+                    console.error("Failed to load audiobooks")
+                }
+            } catch (error) {
+                console.error("Network error:", error)
+            }
+        },
+
+        async loadAvailableSubplans() {
+            try {
+                const response = await fetch("http://localhost:4567/subplans", {
+                    headers: { Authorization: `Bearer ${token}` },
+                })
+
+                if (response.ok) {
+                    this.subplans = await response.json()
+                } else {
+                    console.error("Failed to load subplans")
+                }
+            } catch (error) {
+                console.error("Network error:", error)
+            }
+        },
+
+        async loadUserAudiobooks() {
+            try {
+                const response = await fetch(`http://localhost:4567/users/${this.id}/audiobooks`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                })
+
+                if (response.ok) {
+                    const payload = await response.json()
+                    const ids = Array.isArray(payload) ? payload : (Array.isArray(payload?.audiobooks) ? payload.audiobooks : [])
+                    this.selectedAudiobookIds = this.normalizeIds(ids)
+                } else {
+                    console.error("Failed to load user audiobooks")
+                }
+            } catch (error) {
+                console.error("Network error:", error)
+            }
+        },
+
+        async loadUserSubplans() {
+            try {
+                const response = await fetch(`http://localhost:4567/users/${this.id}/subplans`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                })
+
+                if (response.ok) {
+                    const payload = await response.json()
+                    const ids = Array.isArray(payload) ? payload : (Array.isArray(payload?.subplans) ? payload.subplans : [])
+                    this.selectedSubplanIds = this.normalizeIds(ids)
+                } else {
+                    console.error("Failed to load user subplans")
+                }
+            } catch (error) {
+                console.error("Network error:", error)
+            }
+        },
+
+        normalizeIds(list) {
+            if (!Array.isArray(list)) return []
+            return list.map(value => this.normalizeId(value))
+        },
+
+        normalizeId(value) {
+            if (typeof value === "number" && !Number.isNaN(value)) return value
+            if (typeof value === "string" && value.trim() !== "") {
+                const numeric = Number(value)
+                if (!Number.isNaN(numeric)) return numeric
+            }
+            return value
+        },
+
+        isAudiobookSelected(id) {
+            const normalizedId = this.normalizeId(id)
+            return this.selectedAudiobookIds.includes(normalizedId)
+        },
+
+        isSubplanSelected(id) {
+            const normalizedId = this.normalizeId(id)
+            return this.selectedSubplanIds.includes(normalizedId)
+        },
+
+        async toggleAudiobook(id) {
+            const normalizedId = this.normalizeId(id)
+            const wasSelected = this.isAudiobookSelected(normalizedId)
+            const shouldSelect = !wasSelected
+
+            try {
+                const response = await fetch(`http://localhost:4567/users/${this.id}/audiobooks/${id}`, {
+                    method: shouldSelect ? "POST" : "DELETE",
+                    headers: { Authorization: `Bearer ${token}` },
+                })
+
+                if (response.ok) {
+                    if (shouldSelect) {
+                        this.selectedAudiobookIds.push(normalizedId)
+                    } else {
+                        this.selectedAudiobookIds = this.selectedAudiobookIds.filter(existingId => existingId !== normalizedId)
+                    }
+                } else {
+                    console.error("Failed to update user audiobooks")
+                }
+            } catch (error) {
+                console.error("Network error:", error)
+            }
+        },
+
+        async toggleSubplan(id) {
+            const normalizedId = this.normalizeId(id)
+            const wasSelected = this.isSubplanSelected(normalizedId)
+            const shouldSelect = !wasSelected
+
+            try {
+                const response = await fetch(`http://localhost:4567/users/${this.id}/subplans/${id}`, {
+                    method: shouldSelect ? "POST" : "DELETE",
+                    headers: { Authorization: `Bearer ${token}` },
+                })
+
+                if (response.ok) {
+                    if (shouldSelect) {
+                        this.selectedSubplanIds.push(normalizedId)
+                    } else {
+                        this.selectedSubplanIds = this.selectedSubplanIds.filter(existingId => existingId !== normalizedId)
+                    }
+                } else {
+                    console.error("Failed to update user subplans")
+                }
+            } catch (error) {
+                console.error("Network error:", error)
+            }
+        },
+    }))
+</script>
+
+
+<style>
+    #user {
+        display: block;
+
+        table {
+            width: 100%;
+
+            .status {
+                width: 2rem;
+                text-align: center;
+                font-size: 1.25rem;
+            }
+
+            .audiobook-row, .subplan-row {
+                cursor: pointer;
+
+                &:hover {
+                    background: #f8f9fa;
+                }
+            }
+        }
+
+        .no-cover {
+            width: 64px;
+            height: 64px;
+            background: #ced4da;
+            border-radius: .5rem;
+        }
+
+        img {
+            border-radius: .5rem;
+            box-shadow: 0 0 1em rgba(0, 0, 0, 0.1);
+        }
+
+        .details {
+            display: grid;
+            gap: .5rem;
+
+            .field {
+                display: flex;
+                flex-direction: column;
+                gap: .25rem;
+            }
+        }
+    }
+</style>
+
+
+<div id="user" x-data="user">
+    <dashboard-shell :title="name || email || 'User'">
+        <div class="form-stacked">
+            <section>
+                <h2>Details</h2>
+                <div class="details">
+                    <div class="field">
+                        <span>Email</span>
+                        <span x-text="email || '—'"></span>
+                    </div>
+                    <template x-if="name">
+                        <div class="field">
+                            <span>Name</span>
+                            <span x-text="name"></span>
+                        </div>
+                    </template>
+                </div>
+            </section>
+
+            <section>
+                <h2>Subscription Plans</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Name</th>
+                        </tr>
+                    </thead>
+                    <template x-for="subplan in subplans" :key="subplan.id">
+                        <tr class="subplan-row" @click="toggleSubplan(subplan.id)">
+                            <td class="status" x-text="isSubplanSelected(subplan.id) ? '✅' : '❌'"></td>
+                            <td x-text="subplan.name" class="strong"></td>
+                        </tr>
+                    </template>
+                </table>
+            </section>
+
+            <section>
+                <h2>Audiobooks</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Cover</th>
+                            <th>Title</th>
+                            <th>Author</th>
+                        </tr>
+                    </thead>
+                    <template x-for="audiobook in audiobooks" :key="audiobook.id">
+                        <tr class="audiobook-row" @click="toggleAudiobook(audiobook.id)">
+                            <td class="status" x-text="isAudiobookSelected(audiobook.id) ? '✅' : '❌'"></td>
+                            <td>
+                                <template x-if="audiobook.cover">
+                                    <img :src="'http://localhost:4567/storage/' + audiobook.cover" height="64" />
+                                </template>
+                                <template x-if="!audiobook.cover">
+                                    <div class="no-cover"></div>
+                                </template>
+                            </td>
+                            <td x-text="audiobook.title" class="strong"></td>
+                            <td x-text="audiobook.author"></td>
+                        </tr>
+                    </template>
+                </table>
+            </section>
+        </div>
+    </dashboard-shell>
+</div>
