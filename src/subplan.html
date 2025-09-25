@@ -121,12 +121,8 @@
 </style>
 
 
-<dashboard-shell title="Subplan">
-    <div id="subplan" x-data="subplan">
-        <template x-if="name">
-            <h2 x-text="name" class="strong"></h2>
-        </template>
-
+<div id="subplan" x-data="subplan">
+    <dashboard-shell :title="name">
         <table>
             <thead>
                 <tr>
@@ -154,5 +150,5 @@
                 </tr>
             </template>
         </table>
-    </div>
-</dashboard-shell>
+    </dashboard-shell>
+</div>
