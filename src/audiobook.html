@@ -8,6 +8,7 @@
         existentCover: null,
         coverFile: null,
         chapters: [],
+        isSaving: false,
 
 
         async init() {
@@ -223,6 +224,8 @@
 
 
         async saveAudiobook(event) {
+            if (this.isSaving) return
+            this.isSaving = true
             try {
                 const formData = new FormData()
                 formData.set("title", this.title ?? "")
@@ -247,9 +250,11 @@
                     location.hash = "audiobooks.html"
                 } else {
                     console.error("Failed to save audiobook", response)
+                    this.isSaving = false
                 }
             } catch (error) {
                 console.error("Network error:", error)
+                this.isSaving = false
             }
         },
     }))
@@ -375,13 +380,26 @@
             display: flex;
             justify-content: flex-end;
         }
+
+        .loading-state {
+            display: grid;
+            place-items: center;
+            min-height: 8rem;
+            max-width: 960px;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid #a5d8ff;
+            background: #e7f5ff;
+            color: #339af0;
+            font-weight: 500;
+        }
     }
 </style>
 
 
 <div id="audiobook" x-data="audiobook" @end.window="syncChaptersFromDom($event)">
     <dashboard-shell :title="title">
-        <form @submit.prevent="saveAudiobook" class="form-stacked">
+        <form @submit.prevent="saveAudiobook" class="form-stacked" x-show="!isSaving">
             <section>
                 <h2>Details</h2>
                 <div class="form-grid">
@@ -526,5 +544,10 @@
                 <button type="submit">Save</button>
             </div>
         </form>
+        <template x-if="isSaving">
+            <div class="loading-state">
+                Uploading audiobook...
+            </div>
+        </template>
     </dashboard-shell>
 </div>
